@@ -1,0 +1,226 @@
+import { Tenant, Project, Unit, Owner, AuditLog, User } from '@/types'
+import { subDays } from 'date-fns'
+
+export const mockUsers: User[] = [
+  {
+    id: 'u1',
+    name: 'Carlos Master',
+    email: 'carlos@platform.com',
+    role: 'MASTER',
+    avatarUrl: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
+  },
+  {
+    id: 'u2',
+    name: 'Ana Construtora',
+    email: 'ana@const1.com',
+    role: 'ADMIN',
+    tenantId: 't1',
+    avatarUrl: 'https://img.usecurling.com/ppl/medium?gender=female&seed=2',
+  },
+  {
+    id: 'u3',
+    name: 'Roberto Proprietário',
+    email: 'roberto@gmail.com',
+    role: 'OWNER',
+    avatarUrl: 'https://img.usecurling.com/ppl/medium?gender=male&seed=3',
+  },
+]
+
+export const mockTenants: Tenant[] = [
+  {
+    id: 't1',
+    name: 'Alpha Construções',
+    cnpj: '12.345.678/0001-90',
+    status: 'ACTIVE',
+    createdAt: '2025-01-10',
+    projectCount: 2,
+    logoUrl: 'https://img.usecurling.com/i?q=building&color=blue',
+    primaryColor: '#2563EB',
+  },
+  {
+    id: 't2',
+    name: 'Beta Incorporadora',
+    cnpj: '98.765.432/0001-10',
+    status: 'ACTIVE',
+    createdAt: '2025-02-15',
+    projectCount: 1,
+    logoUrl: 'https://img.usecurling.com/i?q=crane&color=orange',
+    primaryColor: '#EAB308',
+  },
+  {
+    id: 't3',
+    name: 'Gamma Engenharia',
+    cnpj: '45.123.789/0001-55',
+    status: 'SUSPENDED',
+    createdAt: '2025-03-01',
+    projectCount: 0,
+    logoUrl: 'https://img.usecurling.com/i?q=helmet&color=gray',
+    primaryColor: '#64748B',
+  },
+]
+
+export const mockProjects: Project[] = [
+  {
+    id: 'p1',
+    tenantId: 't1',
+    name: 'Residencial Horizonte',
+    address: 'Av. Paulista, 1000, São Paulo',
+    totalUnits: 40,
+    completionPercentage: 75,
+    deliveryDate: '2026-12-01',
+    status: 'CONSTRUCTION',
+    imageUrl:
+      'https://img.usecurling.com/p/400/300?q=modern%20apartment%20building',
+  },
+  {
+    id: 'p2',
+    tenantId: 't1',
+    name: 'Torre Crystal',
+    address: 'Rua Oscar Freire, 500, São Paulo',
+    totalUnits: 20,
+    completionPercentage: 10,
+    deliveryDate: '2027-06-01',
+    status: 'PLANNING',
+    imageUrl: 'https://img.usecurling.com/p/400/300?q=luxury%20condo',
+  },
+  {
+    id: 'p3',
+    tenantId: 't2',
+    name: 'Vila Verde',
+    address: 'Rua das Flores, 20, Campinas',
+    totalUnits: 100,
+    completionPercentage: 100,
+    deliveryDate: '2025-10-01',
+    status: 'DELIVERED',
+    imageUrl: 'https://img.usecurling.com/p/400/300?q=suburban%20houses',
+  },
+]
+
+export const mockUnits: Unit[] = [
+  // Project 1 Units
+  {
+    id: 'un1',
+    projectId: 'p1',
+    block: 'A',
+    number: '101',
+    typology: '2D',
+    area: 65,
+    price: 450000,
+    status: 'SOLD',
+    ownerId: 'o1',
+  },
+  {
+    id: 'un2',
+    projectId: 'p1',
+    block: 'A',
+    number: '102',
+    typology: '2D',
+    area: 65,
+    price: 450000,
+    status: 'AVAILABLE',
+  },
+  {
+    id: 'un3',
+    projectId: 'p1',
+    block: 'A',
+    number: '103',
+    typology: '3D',
+    area: 85,
+    price: 650000,
+    status: 'RESERVED',
+  },
+  {
+    id: 'un4',
+    projectId: 'p1',
+    block: 'B',
+    number: '201',
+    typology: '2D',
+    area: 65,
+    price: 460000,
+    status: 'AVAILABLE',
+  },
+  {
+    id: 'un5',
+    projectId: 'p1',
+    block: 'B',
+    number: '202',
+    typology: 'Studio',
+    area: 40,
+    price: 300000,
+    status: 'SOLD',
+    ownerId: 'o2',
+  },
+  // Project 2 Units
+  {
+    id: 'un6',
+    projectId: 'p2',
+    block: 'Unico',
+    number: '10',
+    typology: '4D',
+    area: 150,
+    price: 1500000,
+    status: 'AVAILABLE',
+  },
+  {
+    id: 'un7',
+    projectId: 'p2',
+    block: 'Unico',
+    number: '11',
+    typology: '4D',
+    area: 150,
+    price: 1550000,
+    status: 'AVAILABLE',
+  },
+]
+
+export const mockOwners: Owner[] = [
+  {
+    id: 'o1',
+    name: 'Roberto Proprietário',
+    email: 'roberto@gmail.com',
+    phone: '(11) 99999-9999',
+    document: '123.456.789-00',
+    unitsOwned: ['un1'],
+  },
+  {
+    id: 'o2',
+    name: 'Fernanda Lima',
+    email: 'fernanda@gmail.com',
+    phone: '(11) 98888-8888',
+    document: '321.654.987-00',
+    unitsOwned: ['un5'],
+  },
+]
+
+export const mockAuditLogs: AuditLog[] = [
+  {
+    id: 'log1',
+    userId: 'u1',
+    userName: 'Carlos Master',
+    action: 'CREATE',
+    entityType: 'TENANT',
+    entityId: 't1',
+    details: 'Created tenant Alpha Construções',
+    timestamp: subDays(new Date(), 2).toISOString(),
+  },
+  {
+    id: 'log2',
+    userId: 'u2',
+    userName: 'Ana Construtora',
+    action: 'UPDATE',
+    entityType: 'UNIT',
+    entityId: 'un1',
+    details: 'Status changed from AVAILABLE to SOLD',
+    timestamp: subDays(new Date(), 1).toISOString(),
+  },
+  {
+    id: 'log3',
+    userId: 'u2',
+    userName: 'Ana Construtora',
+    action: 'UPDATE',
+    entityType: 'PROJECT',
+    entityId: 'p1',
+    details: 'Completion updated to 75%',
+    timestamp: new Date().toISOString(),
+  },
+]
