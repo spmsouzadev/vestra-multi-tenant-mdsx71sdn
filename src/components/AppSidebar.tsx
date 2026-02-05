@@ -18,6 +18,7 @@ import {
   Settings,
   LogOut,
   Building,
+  UserPlus,
 } from 'lucide-react'
 import useAppStore from '@/stores/useAppStore'
 import { Link, useLocation } from 'react-router-dom'
@@ -33,6 +34,7 @@ export function AppSidebar() {
 
   const masterLinks = [
     { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { title: 'CRM / Leads', icon: UserPlus, path: '/leads' },
     { title: 'Construtoras', icon: Building2, path: '/tenants' },
     { title: 'Auditoria', icon: FileText, path: '/audit' },
     { title: 'Configurações', icon: Settings, path: '/settings' },

@@ -1,4 +1,4 @@
-import { Tenant, Project, Unit, Owner, AuditLog, User } from '@/types'
+import { Tenant, Project, Unit, Owner, AuditLog, User, Lead } from '@/types'
 import { subDays } from 'date-fns'
 
 export const mockUsers: User[] = [
@@ -222,5 +222,50 @@ export const mockAuditLogs: AuditLog[] = [
     entityId: 'p1',
     details: 'Completion updated to 75%',
     timestamp: new Date().toISOString(),
+  },
+]
+
+export const mockLeads: Lead[] = [
+  {
+    id: 'l1',
+    companyType: 'construtora',
+    businessName: 'Delta Construções',
+    cnpj: '55.444.333/0001-22',
+    managerName: 'José da Silva',
+    email: 'jose@deltaconst.com.br',
+    whatsapp: '(11) 98765-4321',
+    location: 'São Paulo - SP',
+    unitsPerMonth: '51-200',
+    plan: 'pro',
+    status: 'NEW',
+    createdAt: subDays(new Date(), 3).toISOString(),
+  },
+  {
+    id: 'l2',
+    companyType: 'incorporadora',
+    businessName: 'Sigma Incorporadora',
+    cnpj: '66.777.888/0001-99',
+    managerName: 'Maria Oliveira',
+    email: 'maria@sigma.com.br',
+    whatsapp: '(21) 91234-5678',
+    location: 'Rio de Janeiro - RJ',
+    unitsPerMonth: '201-500',
+    plan: 'enterprise',
+    status: 'CONTACTED',
+    createdAt: subDays(new Date(), 5).toISOString(),
+  },
+  {
+    id: 'l3',
+    companyType: 'imobiliaria',
+    businessName: 'Imóveis Prime',
+    cnpj: '11.222.333/0001-44',
+    managerName: 'Pedro Santos',
+    email: 'pedro@imoveisprime.com',
+    whatsapp: '(31) 99988-7766',
+    location: 'Belo Horizonte - MG',
+    unitsPerMonth: '0-50',
+    plan: 'basic',
+    status: 'REJECTED',
+    createdAt: subDays(new Date(), 10).toISOString(),
   },
 ]

@@ -63,3 +63,20 @@ export interface AuditLog {
   details: string
   timestamp: string
 }
+
+export type LeadStatus = 'NEW' | 'CONTACTED' | 'APPROVED' | 'REJECTED'
+
+export interface Lead {
+  id: string
+  companyType: string
+  businessName: string
+  cnpj: string
+  managerName: string
+  email: string
+  whatsapp: string
+  location: string
+  unitsPerMonth: string
+  plan: string
+  status: LeadStatus
+  createdAt: string
+}

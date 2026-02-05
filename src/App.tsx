@@ -15,6 +15,7 @@ import Projects from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
 import Owners from './pages/Owners'
 import AuditTrail from './pages/AuditTrail'
+import Leads from './pages/Leads'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -35,6 +36,7 @@ const App = () => (
           {/* Protected Routes */}
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/leads" element={<Leads />} />
             <Route path="/tenants" element={<Tenants />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId" element={<ProjectDetails />} />

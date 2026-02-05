@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import useAppStore from '@/stores/useAppStore'
 
 const leadSchema = z.object({
   companyType: z.string().min(1, 'Selecione o tipo de empresa'),
@@ -43,6 +44,7 @@ type LeadFormValues = z.infer<typeof leadSchema>
 
 export function RegistrationFormSection() {
   const { toast } = useToast()
+  const { addLead } = useAppStore()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
@@ -55,11 +57,25 @@ export function RegistrationFormSection() {
 
   const onSubmit = async (data: LeadFormValues) => {
     setIsLoading(true)
-    // Mock API call trigger
-    console.log('Lead Captured:', data)
 
     // Simulate delay
     await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // Create new lead using store
+    addLead({
+      id: Math.random().toString(),
+      companyType: data.companyType,
+      businessName: data.businessName,
+      cnpj: data.cnpj,
+      managerName: data.managerName,
+      email: data.email,
+      whatsapp: data.whatsapp,
+      location: data.location,
+      unitsPerMonth: data.unitsPerMonth,
+      plan: data.plan,
+      status: 'NEW',
+      createdAt: new Date().toISOString(),
+    })
 
     // Mock analytics event
     console.log('Event: form_submit', { form: 'lead_gen_home' })
@@ -107,7 +123,7 @@ export function RegistrationFormSection() {
 
           <Card className="shadow-xl border-t-4 border-t-primary">
             <CardHeader>
-              <CardTitle>Criar Conta / Solicitar Contato</CardTitle>
+              <CardTitle>Solicitar Contato</CardTitle>
               <CardDescription>
                 Comece agora a revolução digital na sua construtora.
               </CardDescription>
@@ -341,7 +357,7 @@ export function RegistrationFormSection() {
                         Enviando...
                       </>
                     ) : (
-                      'Cadastrar Empresa'
+                      'Solicitar Contato'
                     )}
                   </Button>
                 </form>

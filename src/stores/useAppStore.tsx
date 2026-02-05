@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { User, Tenant, Project, Unit, Owner, AuditLog } from '@/types'
+import {
+  User,
+  Tenant,
+  Project,
+  Unit,
+  Owner,
+  AuditLog,
+  Lead,
+  LeadStatus,
+} from '@/types'
 import {
   mockUsers,
   mockTenants,
@@ -7,6 +16,7 @@ import {
   mockUnits,
   mockOwners,
   mockAuditLogs,
+  mockLeads,
 } from '@/data/mockData'
 
 interface AppState {
@@ -16,6 +26,7 @@ interface AppState {
   units: Unit[]
   owners: Owner[]
   auditLogs: AuditLog[]
+  leads: Lead[]
   login: (email: string, password?: string) => Promise<boolean>
   logout: () => void
   addTenant: (tenant: Tenant) => void
@@ -30,6 +41,9 @@ interface AppState {
   addAuditLog: (log: AuditLog) => void
   getFilteredProjects: () => Project[]
   getFilteredUnits: () => Unit[]
+  addLead: (lead: Lead) => void
+  updateLeadStatus: (id: string, status: LeadStatus) => void
+  approveLead: (id: string) => void
 }
 
 const AppContext = createContext<AppState | undefined>(undefined)
@@ -41,6 +55,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [units, setUnits] = useState<Unit[]>(mockUnits)
   const [owners, setOwners] = useState<Owner[]>(mockOwners)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs)
+  const [leads, setLeads] = useState<Lead[]>(mockLeads)
 
   const addAuditLog = (log: AuditLog) => {
     setAuditLogs((prev) => [log, ...prev])
@@ -167,6 +182,55 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })
   }
 
+  const addLead = (lead: Lead) => {
+    setLeads([lead, ...leads])
+    addAuditLog({
+      id: Math.random().toString(),
+      userId: 'sys',
+      userName: 'System (Public)',
+      action: 'CREATE',
+      entityType: 'LEAD',
+      entityId: lead.id,
+      details: `New lead captured: ${lead.businessName}`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  const updateLeadStatus = (id: string, status: LeadStatus) => {
+    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)))
+    addAuditLog({
+      id: Math.random().toString(),
+      userId: user?.id || 'sys',
+      userName: user?.name || 'System',
+      action: 'UPDATE',
+      entityType: 'LEAD',
+      entityId: id,
+      details: `Lead status updated to ${status}`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  const approveLead = (id: string) => {
+    const lead = leads.find((l) => l.id === id)
+    if (!lead) return
+
+    if (lead.status === 'APPROVED') return
+
+    const newTenant: Tenant = {
+      id: Math.random().toString(),
+      name: lead.businessName,
+      cnpj: lead.cnpj,
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString().split('T')[0],
+      projectCount: 0,
+      logoUrl: `https://img.usecurling.com/i?q=building&color=black`,
+      primaryColor: '#000000',
+    }
+
+    addTenant(newTenant)
+    updateLeadStatus(id, 'APPROVED')
+  }
+
   const getFilteredProjects = () => {
     if (!user) return []
     if (user.role === 'MASTER') return projects
@@ -190,6 +254,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         units,
         owners,
         auditLogs,
+        leads,
         login,
         logout,
         addTenant,
@@ -200,6 +265,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addAuditLog,
         getFilteredProjects,
         getFilteredUnits,
+        addLead,
+        updateLeadStatus,
+        approveLead,
       }}
     >
       {children}
