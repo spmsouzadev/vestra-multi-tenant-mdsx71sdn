@@ -17,13 +17,6 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -39,8 +32,6 @@ import {
   Eye,
   History,
   Search,
-  Plus,
-  File,
   Lock,
   Unlock,
 } from 'lucide-react'
@@ -79,10 +70,16 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
   ]
 
   // Upload Form State
-  const [uploadData, setUploadData] = useState({
-    name: '',
+  const [uploadData, setUploadData] = useState<{
+    description: string
+    tags: string
+    visible: boolean
+    file: File | null
+  }>({
+    description: '',
     tags: '',
     visible: false,
+    file: null,
   })
 
   const projectDocuments = documents.filter((d) => d.projectId === projectId)
@@ -93,15 +90,63 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
         d.tags.some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()))),
   )
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) {
+      setUploadData((prev) => ({ ...prev, file: null }))
+      return
+    }
+
+    // File Type Validation (Extension Check as backup to accept attribute)
+    const validExtensions = ['pdf', 'png', 'jpg', 'jpeg']
+    const fileExtension = file.name.split('.').pop()?.toLowerCase()
+
+    if (!fileExtension || !validExtensions.includes(fileExtension)) {
+      toast({
+        variant: 'destructive',
+        title: 'Tipo de arquivo inválido',
+        description: 'Apenas arquivos .pdf, .png e .jpg são permitidos.',
+      })
+      e.target.value = '' // Reset input
+      setUploadData((prev) => ({ ...prev, file: null }))
+      return
+    }
+
+    // File Size Validation (20MB)
+    const maxSize = 20 * 1024 * 1024 // 20MB in bytes
+    if (file.size > maxSize) {
+      toast({
+        variant: 'destructive',
+        title: 'Arquivo muito grande',
+        description: 'O arquivo deve ter no máximo 20MB.',
+      })
+      e.target.value = '' // Reset input
+      setUploadData((prev) => ({ ...prev, file: null }))
+      return
+    }
+
+    setUploadData((prev) => ({ ...prev, file }))
+  }
+
   const handleUpload = () => {
-    if (!uploadData.name) return
+    if (!uploadData.file) {
+      toast({
+        variant: 'destructive',
+        title: 'Arquivo ausente',
+        description: 'Por favor, selecione um arquivo para enviar.',
+      })
+      return
+    }
+
+    const fileSizeMB = (uploadData.file.size / (1024 * 1024)).toFixed(2)
+    const fileType =
+      uploadData.file.name.split('.').pop()?.toLowerCase() || 'unknown'
 
     const newDoc: ProjectDocument = {
       id: Math.random().toString(),
       projectId,
-      name: uploadData.name.endsWith('.pdf')
-        ? uploadData.name
-        : `${uploadData.name}.pdf`,
+      name: uploadData.file.name,
+      description: uploadData.description,
       category: selectedCategory,
       version: 1,
       tags: uploadData.tags
@@ -109,16 +154,16 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
         .map((t) => t.trim())
         .filter(Boolean),
       isVisibleToOwners: uploadData.visible,
-      url: '#', // Mock
+      url: '#', // Mock URL
       createdAt: new Date().toISOString(),
       createdBy: user?.name || 'Admin',
-      size: '1.5 MB', // Mock
-      type: 'pdf',
+      size: `${fileSizeMB} MB`,
+      type: fileType,
     }
 
     addDocument(newDoc)
     setIsUploadOpen(false)
-    setUploadData({ name: '', tags: '', visible: false })
+    setUploadData({ description: '', tags: '', visible: false, file: null })
     toast({
       title: 'Documento enviado',
       description: 'O arquivo foi adicionado com sucesso.',
@@ -221,13 +266,29 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nome do Arquivo</Label>
+                  <Label htmlFor="file">Arquivo</Label>
                   <Input
-                    id="name"
-                    placeholder="Ex: Planta Hidráulica"
-                    value={uploadData.name}
+                    id="file"
+                    type="file"
+                    accept=".pdf,.png,.jpg"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Formatos permitidos: PDF, PNG, JPG (Máx. 20MB)
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Input
+                    id="description"
+                    placeholder="Resumo em uma linha do que se trata o arquivo."
+                    value={uploadData.description}
                     onChange={(e) =>
-                      setUploadData({ ...uploadData, name: e.target.value })
+                      setUploadData({
+                        ...uploadData,
+                        description: e.target.value,
+                      })
                     }
                   />
                 </div>
@@ -258,7 +319,9 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleUpload}>Enviar Arquivo</Button>
+                <Button onClick={handleUpload} disabled={!uploadData.file}>
+                  Enviar Arquivo
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -302,9 +365,17 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
                           >
                             {doc.name}
                           </span>
-                          <span className="text-xs text-muted-foreground">
-                            {doc.size}
-                          </span>
+                          <div className="flex gap-2 text-xs text-muted-foreground">
+                            <span>{doc.size}</span>
+                            {doc.description && (
+                              <span
+                                className="truncate max-w-[150px] border-l pl-2"
+                                title={doc.description}
+                              >
+                                {doc.description}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -386,7 +457,9 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{viewingDoc?.name}</DialogTitle>
-            <DialogDescription>Visualização do documento</DialogDescription>
+            <DialogDescription>
+              {viewingDoc?.description || 'Visualização do documento'}
+            </DialogDescription>
           </DialogHeader>
           <div className="flex-1 bg-slate-100 rounded-md flex items-center justify-center border-2 border-dashed border-slate-300">
             <div className="text-center">

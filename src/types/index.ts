@@ -110,6 +110,7 @@ export interface ProjectDocument {
   id: string
   projectId: string
   name: string
+  description?: string
   category: DocumentCategory
   version: number
   tags: string[]
