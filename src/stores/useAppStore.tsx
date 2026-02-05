@@ -16,7 +16,7 @@ interface AppState {
   units: Unit[]
   owners: Owner[]
   auditLogs: AuditLog[]
-  login: (email: string) => void
+  login: (email: string, password?: string) => Promise<boolean>
   logout: () => void
   addTenant: (tenant: Tenant) => void
   addProject: (project: Project) => void
@@ -42,19 +42,61 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [owners, setOwners] = useState<Owner[]>(mockOwners)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs)
 
-  const login = (email: string) => {
+  const addAuditLog = (log: AuditLog) => {
+    setAuditLogs((prev) => [log, ...prev])
+  }
+
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     const foundUser = mockUsers.find((u) => u.email === email)
+
+    // In a real app, we would check password here.
+    // For this mock, we accept any password if user exists.
     if (foundUser) {
       setUser(foundUser)
+      addAuditLog({
+        id: Math.random().toString(),
+        userId: foundUser.id,
+        userName: foundUser.name,
+        action: 'LOGIN',
+        entityType: 'AUTH',
+        entityId: foundUser.id,
+        details: 'User logged in successfully',
+        timestamp: new Date().toISOString(),
+      })
+      return true
+    } else {
+      // Log failed attempt
+      addAuditLog({
+        id: Math.random().toString(),
+        userId: 'sys',
+        userName: 'System',
+        action: 'LOGIN_FAILED',
+        entityType: 'AUTH',
+        entityId: email,
+        details: `Failed login attempt for ${email}`,
+        timestamp: new Date().toISOString(),
+      })
+      return false
     }
   }
 
   const logout = () => {
+    if (user) {
+      addAuditLog({
+        id: Math.random().toString(),
+        userId: user.id,
+        userName: user.name,
+        action: 'LOGOUT',
+        entityType: 'AUTH',
+        entityId: user.id,
+        details: 'User logged out',
+        timestamp: new Date().toISOString(),
+      })
+    }
     setUser(null)
-  }
-
-  const addAuditLog = (log: AuditLog) => {
-    setAuditLogs((prev) => [log, ...prev])
   }
 
   const addTenant = (tenant: Tenant) => {
@@ -130,7 +172,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (user.role === 'MASTER') return projects
     if (user.role === 'ADMIN')
       return projects.filter((p) => p.tenantId === user.tenantId)
-    // Owner logic implies seeing units, but if we list projects, maybe only relevant ones
     return projects
   }
 

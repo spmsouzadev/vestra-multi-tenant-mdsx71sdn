@@ -7,6 +7,8 @@ import { AppProvider } from '@/stores/useAppStore'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import Register from './pages/Register'
 import Tenants from './pages/Tenants'
 import Projects from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
@@ -24,6 +26,8 @@ const App = () => (
         <Sonner />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<Register />} />
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tenants" element={<Tenants />} />
