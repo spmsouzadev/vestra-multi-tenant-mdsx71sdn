@@ -21,7 +21,6 @@ import {
 } from 'lucide-react'
 import useAppStore from '@/stores/useAppStore'
 import { Link, useLocation } from 'react-router-dom'
-import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
   const { user, logout } = useAppStore()
@@ -33,22 +32,22 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path
 
   const masterLinks = [
-    { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { title: 'Construtoras', icon: Building2, path: '/tenants' },
     { title: 'Auditoria', icon: FileText, path: '/audit' },
     { title: 'Configurações', icon: Settings, path: '/settings' },
   ]
 
   const adminLinks = [
-    { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { title: 'Projetos', icon: Building, path: '/projects' },
-    { title: 'Unidades', icon: HardHat, path: '/units' }, // Will redirect to project details generally, but good for direct access
+    { title: 'Unidades', icon: HardHat, path: '/units' },
     { title: 'Proprietários', icon: Users, path: '/owners' },
     { title: 'Configurações', icon: Settings, path: '/settings' },
   ]
 
   const ownerLinks = [
-    { title: 'Meu Painel', icon: LayoutDashboard, path: '/' },
+    { title: 'Meu Painel', icon: LayoutDashboard, path: '/dashboard' },
     { title: 'Documentos', icon: FileText, path: '/documents' },
     { title: 'Suporte', icon: Users, path: '/support' },
   ]

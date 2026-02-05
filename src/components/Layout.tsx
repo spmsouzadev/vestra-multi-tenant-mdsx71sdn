@@ -10,17 +10,14 @@ export default function Layout() {
   const location = useLocation()
 
   // Redirect to login if not authenticated
-  if (!user && location.pathname !== '/login') {
+  if (!user) {
     return <Navigate to="/login" replace />
   }
 
-  // If on login page and authenticated, redirect to dashboard
+  // If authenticated and trying to access /login, redirect to /dashboard
+  // (Note: This logic is also usually handled in the Login page itself)
   if (user && location.pathname === '/login') {
-    return <Navigate to="/" replace />
-  }
-
-  if (location.pathname === '/login') {
-    return <Outlet />
+    return <Navigate to="/dashboard" replace />
   }
 
   return (
