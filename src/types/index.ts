@@ -6,7 +6,7 @@ export interface User {
   email: string
   role: Role
   avatarUrl?: string
-  tenantId?: string // If null, Master Admin has access to all
+  tenantId?: string
 }
 
 export interface Tenant {
@@ -20,15 +20,29 @@ export interface Tenant {
   projectCount: number
 }
 
+export type ProjectStatus = 'PLANNING' | 'CONSTRUCTION' | 'DELIVERED'
+export type ProjectPhase =
+  | 'PRE_SALES'
+  | 'EXECUTION'
+  | 'DELIVERY'
+  | 'POST_DELIVERY'
+
 export interface Project {
   id: string
   tenantId: string
   name: string
+  city: string
+  state: string
+  manager: string
   address: string
   totalUnits: number
+  deliveredUnits: number
+  openIssues: number
   completionPercentage: number
-  deliveryDate: string
-  status: 'PLANNING' | 'CONSTRUCTION' | 'DELIVERED'
+  deliveryDate: string // Previsão
+  actualDeliveryDate?: string // Real
+  status: ProjectStatus
+  phase: ProjectPhase
   imageUrl?: string
 }
 
@@ -50,7 +64,7 @@ export interface Owner {
   email: string
   phone: string
   document: string
-  unitsOwned: string[] // Unit IDs
+  unitsOwned: string[]
 }
 
 export interface AuditLog {
@@ -79,4 +93,37 @@ export interface Lead {
   plan: string
   status: LeadStatus
   createdAt: string
+}
+
+export type DocumentCategory =
+  | 'Projetos'
+  | 'Habite-se'
+  | 'ART'
+  | 'Manuais'
+  | 'Garantias'
+  | 'Vistorias'
+
+export interface ProjectDocument {
+  id: string
+  projectId: string
+  name: string
+  category: DocumentCategory
+  version: number
+  tags: string[]
+  isVisibleToOwners: boolean
+  url: string
+  createdAt: string
+  createdBy: string
+  size: string
+  type: string
+}
+
+export interface DocumentLog {
+  id: string
+  documentId: string
+  action: 'UPLOAD' | 'VIEW' | 'DOWNLOAD' | 'PERMISSION_CHANGE'
+  userId: string
+  userName: string
+  timestamp: string
+  details?: string
 }

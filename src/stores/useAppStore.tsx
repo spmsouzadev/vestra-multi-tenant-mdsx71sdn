@@ -8,6 +8,8 @@ import {
   AuditLog,
   Lead,
   LeadStatus,
+  ProjectDocument,
+  DocumentLog,
 } from '@/types'
 import {
   mockUsers,
@@ -17,6 +19,8 @@ import {
   mockOwners,
   mockAuditLogs,
   mockLeads,
+  mockDocuments,
+  mockDocumentLogs,
 } from '@/data/mockData'
 
 interface AppState {
@@ -27,6 +31,8 @@ interface AppState {
   owners: Owner[]
   auditLogs: AuditLog[]
   leads: Lead[]
+  documents: ProjectDocument[]
+  documentLogs: DocumentLog[]
   login: (email: string, password?: string) => Promise<boolean>
   logout: () => void
   addTenant: (tenant: Tenant) => void
@@ -44,6 +50,10 @@ interface AppState {
   addLead: (lead: Lead) => void
   updateLeadStatus: (id: string, status: LeadStatus) => void
   approveLead: (id: string) => void
+  // Document Management
+  addDocument: (doc: ProjectDocument) => void
+  updateDocumentVisibility: (id: string, isVisible: boolean) => void
+  logDocumentAction: (log: DocumentLog) => void
 }
 
 const AppContext = createContext<AppState | undefined>(undefined)
@@ -56,6 +66,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [owners, setOwners] = useState<Owner[]>(mockOwners)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs)
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
+  const [documents, setDocuments] = useState<ProjectDocument[]>(mockDocuments)
+  const [documentLogs, setDocumentLogs] =
+    useState<DocumentLog[]>(mockDocumentLogs)
 
   const addAuditLog = (log: AuditLog) => {
     setAuditLogs((prev) => [log, ...prev])
@@ -83,7 +96,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })
       return true
     } else {
-      // Log failed attempt
       addAuditLog({
         id: Math.random().toString(),
         userId: 'sys',
@@ -236,13 +248,48 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (user.role === 'MASTER') return projects
     if (user.role === 'ADMIN')
       return projects.filter((p) => p.tenantId === user.tenantId)
-    return projects
+    return projects // For owners, usually we filter by ownership but keeping this simple
   }
 
   const getFilteredUnits = () => {
     if (!user) return []
     const visibleProjects = getFilteredProjects().map((p) => p.id)
     return units.filter((u) => visibleProjects.includes(u.projectId))
+  }
+
+  // Document Management Methods
+  const addDocument = (doc: ProjectDocument) => {
+    setDocuments((prev) => [doc, ...prev])
+    logDocumentAction({
+      id: Math.random().toString(),
+      documentId: doc.id,
+      action: 'UPLOAD',
+      userId: user?.id || 'sys',
+      userName: user?.name || 'System',
+      timestamp: new Date().toISOString(),
+      details: `Version ${doc.version} uploaded`,
+    })
+  }
+
+  const updateDocumentVisibility = (id: string, isVisible: boolean) => {
+    setDocuments((prev) =>
+      prev.map((doc) =>
+        doc.id === id ? { ...doc, isVisibleToOwners: isVisible } : doc,
+      ),
+    )
+    logDocumentAction({
+      id: Math.random().toString(),
+      documentId: id,
+      action: 'PERMISSION_CHANGE',
+      userId: user?.id || 'sys',
+      userName: user?.name || 'System',
+      timestamp: new Date().toISOString(),
+      details: `Visibility changed to ${isVisible ? 'Visible' : 'Hidden'}`,
+    })
+  }
+
+  const logDocumentAction = (log: DocumentLog) => {
+    setDocumentLogs((prev) => [log, ...prev])
   }
 
   return (
@@ -255,6 +302,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         owners,
         auditLogs,
         leads,
+        documents,
+        documentLogs,
         login,
         logout,
         addTenant,
@@ -268,6 +317,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addLead,
         updateLeadStatus,
         approveLead,
+        addDocument,
+        updateDocumentVisibility,
+        logDocumentAction,
       }}
     >
       {children}
