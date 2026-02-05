@@ -51,10 +51,13 @@ export interface Unit {
   projectId: string
   block: string
   number: string
+  floor: string
+  bedrooms: number
+  bathrooms: number
   typology: string
   area: number
   price: number
-  status: 'AVAILABLE' | 'RESERVED' | 'SOLD'
+  status: 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'DELIVERED'
   ownerId?: string
 }
 

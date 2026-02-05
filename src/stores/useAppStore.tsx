@@ -43,6 +43,8 @@ interface AppState {
     status: Unit['status'],
     ownerId?: string,
   ) => void
+  updateUnit: (unit: Unit) => void
+  deleteUnit: (id: string) => void
   addOwner: (owner: Owner) => void
   addAuditLog: (log: AuditLog) => void
   getFilteredProjects: () => Project[]
@@ -180,6 +182,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })
   }
 
+  const updateUnit = (unit: Unit) => {
+    setUnits((prev) => prev.map((u) => (u.id === unit.id ? unit : u)))
+    addAuditLog({
+      id: Math.random().toString(),
+      userId: user?.id || 'sys',
+      userName: user?.name || 'System',
+      action: 'UPDATE',
+      entityType: 'UNIT',
+      entityId: unit.id,
+      details: `Updated unit ${unit.number} details`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  const deleteUnit = (id: string) => {
+    const unit = units.find((u) => u.id === id)
+    setUnits((prev) => prev.filter((u) => u.id !== id))
+    addAuditLog({
+      id: Math.random().toString(),
+      userId: user?.id || 'sys',
+      userName: user?.name || 'System',
+      action: 'DELETE',
+      entityType: 'UNIT',
+      entityId: id,
+      details: `Deleted unit ${unit?.number || id}`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
   const addOwner = (owner: Owner) => {
     setOwners([...owners, owner])
     addAuditLog({
@@ -310,6 +341,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addProject,
         addUnit,
         updateUnitStatus,
+        updateUnit,
+        deleteUnit,
         addOwner,
         addAuditLog,
         getFilteredProjects,
