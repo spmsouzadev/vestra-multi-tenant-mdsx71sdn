@@ -17,6 +17,7 @@ import Owners from './pages/Owners'
 import AuditTrail from './pages/AuditTrail'
 import Leads from './pages/Leads'
 import OwnerDocuments from './pages/OwnerDocuments'
+import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/owners" element={<Owners />} />
             <Route path="/audit" element={<AuditTrail />} />
             <Route path="/documents" element={<OwnerDocuments />} />
+            <Route path="/settings" element={<Settings />} />
             <Route
               path="/units"
               element={<Navigate to="/projects" replace />}

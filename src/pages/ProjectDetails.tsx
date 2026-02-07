@@ -18,6 +18,7 @@ import {
 import { ProjectTimeline } from '@/components/projects/ProjectTimeline'
 import { DocumentManager } from '@/components/projects/DocumentManager'
 import { UnitList } from '@/components/projects/UnitList'
+import { WarrantyManager } from '@/components/projects/WarrantyManager'
 import { useState } from 'react'
 import { format } from 'date-fns'
 
@@ -93,11 +94,11 @@ export default function ProjectDetails() {
           <TabsTrigger value="documents" className="py-2 gap-2">
             <FileText className="h-4 w-4" /> Documentos
           </TabsTrigger>
-          <TabsTrigger value="inspections" className="py-2 gap-2">
-            <CheckSquare className="h-4 w-4" /> Vistorias
-          </TabsTrigger>
           <TabsTrigger value="warranties" className="py-2 gap-2">
             <Shield className="h-4 w-4" /> Garantias
+          </TabsTrigger>
+          <TabsTrigger value="inspections" className="py-2 gap-2">
+            <CheckSquare className="h-4 w-4" /> Vistorias
           </TabsTrigger>
           <TabsTrigger value="reports" className="py-2 gap-2">
             <Activity className="h-4 w-4" /> Relatórios
@@ -114,6 +115,11 @@ export default function ProjectDetails() {
           <DocumentManager projectId={project.id} />
         </TabsContent>
 
+        {/* Warranties Tab */}
+        <TabsContent value="warranties" className="animate-fade-in">
+          <WarrantyManager projectId={project.id} />
+        </TabsContent>
+
         {/* Placeholders for other tabs */}
         <TabsContent value="inspections" className="animate-fade-in">
           <div className="flex flex-col items-center justify-center py-12 bg-slate-50 rounded-lg border border-dashed border-slate-300">
@@ -123,18 +129,6 @@ export default function ProjectDetails() {
             </h3>
             <p className="text-slate-500">
               Em breve você poderá gerenciar as vistorias de entrega aqui.
-            </p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="warranties" className="animate-fade-in">
-          <div className="flex flex-col items-center justify-center py-12 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-            <Shield className="h-12 w-12 text-slate-300 mb-4" />
-            <h3 className="text-lg font-medium text-slate-900">
-              Módulo de Garantias
-            </h3>
-            <p className="text-slate-500">
-              Em breve você poderá gerenciar os chamados de garantia aqui.
             </p>
           </div>
         </TabsContent>

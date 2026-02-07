@@ -147,3 +147,27 @@ export interface DocumentLog {
   timestamp: string
   details?: string
 }
+
+export interface WarrantyCategory {
+  id: string
+  tenantId: string
+  name: string
+  termYears: number
+  description?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type WarrantyStatus = 'Vigente' | 'Expirada' | 'Suspensa'
+
+export interface UnitWarranty {
+  id: string
+  unitId: string
+  categoryId: string
+  startDate: string
+  expirationDate: string
+  status: WarrantyStatus
+  notes?: string
+  categoryName?: string // Helper for UI display join
+  createdAt: string
+}
