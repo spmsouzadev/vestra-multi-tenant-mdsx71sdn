@@ -59,6 +59,16 @@ export function DocumentManager({ projectId }: DocumentManagerProps) {
   ]
 
   const loadDocuments = async () => {
+    // Basic UUID validation before calling service
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!projectId || !uuidRegex.test(projectId)) {
+      console.warn('Invalid Project ID for DocumentManager:', projectId)
+      // We don't error out, just don't fetch. Service handles it too, but saving a call.
+      setDocuments([])
+      return
+    }
+
     setLoading(true)
     try {
       const docs = await documentService.getDocuments(projectId)

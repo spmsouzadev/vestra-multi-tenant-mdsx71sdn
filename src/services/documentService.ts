@@ -6,9 +6,30 @@ import {
   DocumentCategory,
 } from '@/types'
 
+// UUID validation helper
+const isValidUUID = (uuid: string) => {
+  const regex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return regex.test(uuid)
+}
+
 export const documentService = {
   // Fetch documents for a project (optionally filtered by unit)
   async getDocuments(projectId: string, unitId?: string) {
+    // Validate project ID format to prevent DB errors
+    if (!isValidUUID(projectId)) {
+      console.warn(
+        `Invalid UUID format for projectId: ${projectId}. Skipping fetch.`,
+      )
+      return []
+    }
+
+    // Validate unit ID format if provided
+    if (unitId && !isValidUUID(unitId)) {
+      console.warn(`Invalid UUID format for unitId: ${unitId}. Skipping fetch.`)
+      return []
+    }
+
     let query = supabase
       .from('documents')
       .select('*')
@@ -50,6 +71,11 @@ export const documentService = {
 
   // Fetch documents for an owner
   async getOwnerDocuments(ownerUnitsIds: string[]) {
+    // Filter out invalid IDs
+    const validUnitIds = ownerUnitsIds.filter(isValidUUID)
+
+    if (validUnitIds.length === 0) return []
+
     // This is complex with simple query, assuming we fetch all PUBLIC/SHARED docs for projects owner is part of
     // For simplicity/mock compatibility: Fetch all docs that are SHARED/PUBLIC and linked to units owner owns OR project level
 
@@ -95,6 +121,8 @@ export const documentService = {
       userId: string
     },
   ) {
+    if (!isValidUUID(metadata.projectId)) throw new Error('Invalid Project ID')
+
     // 1. Upload file to storage
     const fileExt = file.name.split('.').pop()
     const filePath = `${metadata.projectId}/${Date.now()}_${file.name}`
@@ -110,7 +138,10 @@ export const documentService = {
       .from('documents')
       .insert({
         project_id: metadata.projectId,
-        unit_id: metadata.unit_id,
+        unit_id:
+          metadata.unitId && isValidUUID(metadata.unitId)
+            ? metadata.unitId
+            : null,
         title: metadata.title,
         description: metadata.description,
         category: metadata.category,
@@ -150,6 +181,8 @@ export const documentService = {
     userId: string,
     currentVersion: number,
   ) {
+    if (!isValidUUID(documentId)) throw new Error('Invalid Document ID')
+
     // 1. Upload file to storage
     const filePath = `versions/${documentId}/${Date.now()}_${file.name}`
 
@@ -191,6 +224,8 @@ export const documentService = {
   },
 
   async getVersions(documentId: string) {
+    if (!isValidUUID(documentId)) return []
+
     const { data, error } = await supabase
       .from('document_versions')
       .select('*')
@@ -210,6 +245,8 @@ export const documentService = {
   },
 
   async getLatestVersionPath(documentId: string) {
+    if (!isValidUUID(documentId)) return null
+
     const { data, error } = await supabase
       .from('document_versions')
       .select('file_path')
@@ -223,6 +260,8 @@ export const documentService = {
   },
 
   async updateVisibility(documentId: string, visibility: DocumentVisibility) {
+    if (!isValidUUID(documentId)) throw new Error('Invalid Document ID')
+
     const { error } = await supabase
       .from('documents')
       .update({ visibility })
