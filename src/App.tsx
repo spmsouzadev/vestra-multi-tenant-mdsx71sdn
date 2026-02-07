@@ -16,6 +16,7 @@ import ProjectDetails from './pages/ProjectDetails'
 import Owners from './pages/Owners'
 import AuditTrail from './pages/AuditTrail'
 import Leads from './pages/Leads'
+import OwnerDocuments from './pages/OwnerDocuments'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/projects/:projectId" element={<ProjectDetails />} />
             <Route path="/owners" element={<Owners />} />
             <Route path="/audit" element={<AuditTrail />} />
+            <Route path="/documents" element={<OwnerDocuments />} />
             <Route
               path="/units"
               element={<Navigate to="/projects" replace />}

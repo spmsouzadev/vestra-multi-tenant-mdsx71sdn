@@ -19,10 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Eye, Pencil, Trash2 } from 'lucide-react'
+import { Eye, Pencil, Trash2, FileText } from 'lucide-react'
 import { ViewUnitDialog } from './ViewUnitDialog'
 import { EditUnitDialog } from './EditUnitDialog'
 import { DeleteUnitDialog } from './DeleteUnitDialog'
+import { UnitDocumentManagerDialog } from '@/components/documents/UnitDocumentManagerDialog'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
@@ -41,6 +42,7 @@ export function UnitList({ projectId }: UnitListProps) {
   const [viewUnit, setViewUnit] = useState<Unit | null>(null)
   const [editUnit, setEditUnit] = useState<Unit | null>(null)
   const [deleteUnitItem, setDeleteUnitItem] = useState<Unit | null>(null)
+  const [docsUnit, setDocsUnit] = useState<Unit | null>(null)
 
   if (!project) return null
 
@@ -182,12 +184,22 @@ export function UnitList({ projectId }: UnitListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-slate-50"
+                          onClick={() => setDocsUnit(unit)}
+                          title="Documentos"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => setViewUnit(unit)}
+                          title="Detalhes"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -196,6 +208,7 @@ export function UnitList({ projectId }: UnitListProps) {
                           size="icon"
                           className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                           onClick={() => setEditUnit(unit)}
+                          title="Editar"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -204,6 +217,7 @@ export function UnitList({ projectId }: UnitListProps) {
                           size="icon"
                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => setDeleteUnitItem(unit)}
+                          title="Excluir"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -234,6 +248,12 @@ export function UnitList({ projectId }: UnitListProps) {
         onOpenChange={(open) => !open && setDeleteUnitItem(null)}
         unit={deleteUnitItem}
         onConfirm={handleDeleteUnit}
+      />
+      <UnitDocumentManagerDialog
+        open={!!docsUnit}
+        onOpenChange={(open) => !open && setDocsUnit(null)}
+        unit={docsUnit}
+        projectId={projectId}
       />
     </div>
   )

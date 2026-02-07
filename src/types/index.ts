@@ -106,26 +106,42 @@ export type DocumentCategory =
   | 'Garantias'
   | 'Vistorias'
 
+export type DocumentVisibility = 'INTERNAL' | 'SHARED' | 'PUBLIC'
+
 export interface ProjectDocument {
   id: string
   projectId: string
-  name: string
+  unitId?: string // Optional link to unit
+  name: string // Display name / Title
   description?: string
   category: DocumentCategory
   version: number
   tags: string[]
-  isVisibleToOwners: boolean
-  url: string
+  visibility: DocumentVisibility
+  isVisibleToOwners: boolean // Legacy/Helper for UI
+  url: string // Current version URL
   createdAt: string
   createdBy: string
   size: string
   type: string
 }
 
+export interface DocumentVersion {
+  id: string
+  documentId: string
+  versionNumber: number
+  filePath: string
+  fileName: string
+  fileSize: number
+  fileType: string
+  createdAt: string
+  createdBy: string
+}
+
 export interface DocumentLog {
   id: string
   documentId: string
-  action: 'UPLOAD' | 'VIEW' | 'DOWNLOAD' | 'PERMISSION_CHANGE'
+  action: 'UPLOAD' | 'VIEW' | 'DOWNLOAD' | 'PERMISSION_CHANGE' | 'NEW_VERSION'
   userId: string
   userName: string
   timestamp: string
