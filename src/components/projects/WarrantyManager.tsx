@@ -13,17 +13,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Search, ShieldCheck, AlertTriangle, ShieldAlert } from 'lucide-react'
+import { Search, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { unitService } from '@/services/unitService'
 import { isPast, parseISO } from 'date-fns'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface WarrantyManagerProps {
   projectId: string
@@ -37,7 +33,8 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
       { configured: boolean; expiredCount: number; activeCount: number }
     >
   >({})
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
+  const [selectedUnits, setSelectedUnits] = useState<Unit[]>([]) // For bulk action
+  const [checkedUnitIds, setCheckedUnitIds] = useState<Set<string>>(new Set())
   const [viewUnit, setViewUnit] = useState<Unit | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
@@ -48,8 +45,6 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
       const unitsData = await unitService.getUnits(projectId)
       setUnits(unitsData)
 
-      // Fetch warranty summary for all units
-      // We'll fetch all warranties for these units to build summary
       const allWarranties = await warrantyService.getProjectWarranties(
         unitsData.map((u) => u.id),
       )
@@ -87,6 +82,32 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
       u.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.block.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  const handleCheck = (unitId: string, checked: boolean) => {
+    const next = new Set(checkedUnitIds)
+    if (checked) next.add(unitId)
+    else next.delete(unitId)
+    setCheckedUnitIds(next)
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setCheckedUnitIds(new Set(filteredUnits.map((u) => u.id)))
+    } else {
+      setCheckedUnitIds(new Set())
+    }
+  }
+
+  const openBulkConfig = () => {
+    const selected = units.filter((u) => checkedUnitIds.has(u.id))
+    if (selected.length > 0) {
+      setSelectedUnits(selected)
+    }
+  }
+
+  const openSingleConfig = (unit: Unit) => {
+    setSelectedUnits([unit])
+  }
 
   return (
     <div className="space-y-6">
@@ -139,7 +160,7 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
         </Card>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -149,12 +170,30 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        {checkedUnitIds.size > 0 && (
+          <Button
+            onClick={openBulkConfig}
+            className="animate-in fade-in zoom-in-95"
+          >
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            Configurar {checkedUnitIds.size} Selecionados
+          </Button>
+        )}
       </div>
 
       <div className="border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={
+                    filteredUnits.length > 0 &&
+                    checkedUnitIds.size === filteredUnits.length
+                  }
+                  onCheckedChange={(c) => handleSelectAll(!!c)}
+                />
+              </TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Bloco</TableHead>
               <TableHead>Status da Garantia</TableHead>
@@ -166,6 +205,12 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
               const summary = warrantiesSummary[unit.id]
               return (
                 <TableRow key={unit.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={checkedUnitIds.has(unit.id)}
+                      onCheckedChange={(c) => handleCheck(unit.id, !!c)}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{unit.number}</TableCell>
                   <TableCell>{unit.block}</TableCell>
                   <TableCell>
@@ -192,15 +237,24 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     {summary?.configured ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setViewUnit(unit)}
-                      >
-                        <ShieldCheck className="w-4 h-4 mr-2" /> Gerenciar
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openSingleConfig(unit)}
+                        >
+                          Configurar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewUnit(unit)}
+                        >
+                          Gerenciar
+                        </Button>
+                      </div>
                     ) : (
-                      <Button size="sm" onClick={() => setSelectedUnit(unit)}>
+                      <Button size="sm" onClick={() => openSingleConfig(unit)}>
                         <ShieldAlert className="w-4 h-4 mr-2" /> Configurar
                       </Button>
                     )}
@@ -212,14 +266,15 @@ export function WarrantyManager({ projectId }: WarrantyManagerProps) {
         </Table>
       </div>
 
-      {selectedUnit && (
+      {selectedUnits.length > 0 && (
         <UnitWarrantyDialog
-          open={!!selectedUnit}
-          onOpenChange={(o) => !o && setSelectedUnit(null)}
-          unit={selectedUnit}
+          open={selectedUnits.length > 0}
+          onOpenChange={(o) => !o && setSelectedUnits([])}
+          units={selectedUnits}
           onSuccess={() => {
             loadData()
-            setSelectedUnit(null)
+            setSelectedUnits([])
+            setCheckedUnitIds(new Set())
           }}
         />
       )}

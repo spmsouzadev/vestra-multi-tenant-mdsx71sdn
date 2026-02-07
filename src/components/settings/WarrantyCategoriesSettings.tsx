@@ -35,7 +35,7 @@ export function WarrantyCategoriesSettings() {
 
   const [formData, setFormData] = useState({
     name: '',
-    termYears: 5,
+    termMonths: 60,
     description: '',
   })
 
@@ -73,7 +73,7 @@ export function WarrantyCategoriesSettings() {
         await warrantyService.createCategory({
           tenantId: user.tenantId,
           name: formData.name,
-          termYears: formData.termYears,
+          termMonths: formData.termMonths,
           description: formData.description,
         })
         toast({ title: 'Criado', description: 'Categoria criada com sucesso.' })
@@ -103,7 +103,7 @@ export function WarrantyCategoriesSettings() {
 
   const openCreate = () => {
     setEditingCategory(null)
-    setFormData({ name: '', termYears: 5, description: '' })
+    setFormData({ name: '', termMonths: 60, description: '' })
     setIsDialogOpen(true)
   }
 
@@ -111,7 +111,7 @@ export function WarrantyCategoriesSettings() {
     setEditingCategory(cat)
     setFormData({
       name: cat.name,
-      termYears: cat.termYears,
+      termMonths: cat.termMonths,
       description: cat.description || '',
     })
     setIsDialogOpen(true)
@@ -138,7 +138,7 @@ export function WarrantyCategoriesSettings() {
           <TableHeader>
             <TableRow>
               <TableHead>Item / Sistema</TableHead>
-              <TableHead>Prazo (Anos)</TableHead>
+              <TableHead>Prazo (Meses)</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -163,7 +163,7 @@ export function WarrantyCategoriesSettings() {
               categories.map((cat) => (
                 <TableRow key={cat.id}>
                   <TableCell className="font-medium">{cat.name}</TableCell>
-                  <TableCell>{cat.termYears} anos</TableCell>
+                  <TableCell>{cat.termMonths} meses</TableCell>
                   <TableCell className="text-muted-foreground">
                     {cat.description}
                   </TableCell>
@@ -198,7 +198,7 @@ export function WarrantyCategoriesSettings() {
               {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
             </DialogTitle>
             <DialogDescription>
-              Defina o nome e o prazo de garantia.
+              Defina o nome e o prazo de garantia em meses.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -213,18 +213,23 @@ export function WarrantyCategoriesSettings() {
               />
             </div>
             <div className="grid gap-2">
-              <Label>Prazo (Anos)</Label>
-              <Input
-                type="number"
-                min="0"
-                value={formData.termYears}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    termYears: parseInt(e.target.value) || 0,
-                  })
-                }
-              />
+              <Label>Prazo (Meses)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.termMonths}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      termMonths: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  ({(formData.termMonths / 12).toFixed(1)} anos)
+                </span>
+              </div>
             </div>
             <div className="grid gap-2">
               <Label>Descrição (Opcional)</Label>

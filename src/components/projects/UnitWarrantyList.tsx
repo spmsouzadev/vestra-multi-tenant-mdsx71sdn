@@ -10,17 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { format, isPast, differenceInDays, parseISO } from 'date-fns'
 import { AlertTriangle, CheckCircle, PauseCircle, XCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
@@ -73,7 +65,7 @@ export function UnitWarrantyList({ unit }: UnitWarrantyListProps) {
     }
 
     // Vigente logic
-    if (daysLeft < 90) {
+    if (daysLeft < 90 && daysLeft >= 0) {
       return (
         <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200">
           <AlertTriangle className="w-3 h-3 mr-1" /> Expira em breve

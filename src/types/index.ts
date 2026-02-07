@@ -152,7 +152,7 @@ export interface WarrantyCategory {
   id: string
   tenantId: string
   name: string
-  termYears: number
+  termMonths: number
   description?: string
   createdAt: string
   updatedAt: string
