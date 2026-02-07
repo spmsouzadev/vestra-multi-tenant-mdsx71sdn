@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import useAppStore from '@/stores/useAppStore'
+import { useState, useEffect } from 'react'
 import { Unit } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -19,37 +18,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Eye, Pencil, Trash2, FileText } from 'lucide-react'
+import { Eye, Pencil, Trash2, FileText, Plus, Loader2 } from 'lucide-react'
 import { ViewUnitDialog } from './ViewUnitDialog'
 import { EditUnitDialog } from './EditUnitDialog'
 import { DeleteUnitDialog } from './DeleteUnitDialog'
+import { CreateUnitDialog } from './CreateUnitDialog'
 import { UnitDocumentManagerDialog } from '@/components/documents/UnitDocumentManagerDialog'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { unitService } from '@/services/unitService'
 
 interface UnitListProps {
   projectId: string
 }
 
 export function UnitList({ projectId }: UnitListProps) {
-  const { projects, units, updateUnit, deleteUnit } = useAppStore()
   const { toast } = useToast()
 
-  const project = projects.find((p) => p.id === projectId)
-  const projectUnits = units.filter((u) => u.projectId === projectId)
+  const [units, setUnits] = useState<Unit[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
   const [viewUnit, setViewUnit] = useState<Unit | null>(null)
   const [editUnit, setEditUnit] = useState<Unit | null>(null)
   const [deleteUnitItem, setDeleteUnitItem] = useState<Unit | null>(null)
+  const [createUnitOpen, setCreateUnitOpen] = useState(false)
   const [docsUnit, setDocsUnit] = useState<Unit | null>(null)
 
-  if (!project) return null
+  const loadUnits = async () => {
+    setLoading(true)
+    try {
+      const data = await unitService.getUnits(projectId)
+      setUnits(data)
+    } catch (error) {
+      console.error('Failed to load units:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível carregar as unidades.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadUnits()
+  }, [projectId])
 
   const filteredUnits =
     filterStatus === 'ALL'
-      ? projectUnits
-      : projectUnits.filter((u) => u.status === filterStatus)
+      ? units
+      : units.filter((u) => u.status === filterStatus)
 
   const statusColors = {
     AVAILABLE: 'bg-green-100 text-green-700 border-green-200',
@@ -65,22 +85,61 @@ export function UnitList({ projectId }: UnitListProps) {
     DELIVERED: 'Entregue',
   }
 
-  const handleUpdateUnit = (updatedUnit: Unit) => {
-    updateUnit(updatedUnit)
-    toast({
-      title: 'Unidade atualizada',
-      description: `A unidade ${updatedUnit.number} foi atualizada com sucesso.`,
-    })
+  const handleCreateUnit = async (newUnit: Omit<Unit, 'id' | 'ownerId'>) => {
+    try {
+      await unitService.createUnit(newUnit)
+      await loadUnits()
+      toast({
+        title: 'Sucesso',
+        description: 'Nova unidade criada com sucesso.',
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao criar unidade.',
+      })
+      throw error // Re-throw to let the dialog know (if it handled loading state)
+    }
   }
 
-  const handleDeleteUnit = () => {
-    if (deleteUnitItem) {
-      deleteUnit(deleteUnitItem.id)
-      setDeleteUnitItem(null)
+  const handleUpdateUnit = async (updatedUnit: Unit) => {
+    try {
+      await unitService.updateUnit(updatedUnit)
+      setUnits((prev) =>
+        prev.map((u) => (u.id === updatedUnit.id ? updatedUnit : u)),
+      )
       toast({
-        title: 'Unidade excluída',
-        description: 'A unidade foi removida do sistema.',
+        title: 'Unidade atualizada',
+        description: `A unidade ${updatedUnit.number} foi atualizada com sucesso.`,
       })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao atualizar unidade.',
+      })
+    }
+  }
+
+  const handleDeleteUnit = async () => {
+    if (deleteUnitItem) {
+      try {
+        await unitService.deleteUnit(deleteUnitItem.id)
+        setUnits((prev) => prev.filter((u) => u.id !== deleteUnitItem.id))
+        setDeleteUnitItem(null)
+        toast({
+          title: 'Unidade excluída',
+          description: 'A unidade foi removida do sistema.',
+        })
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Erro ao excluir unidade.',
+        })
+      }
     }
   }
 
@@ -95,7 +154,11 @@ export function UnitList({ projectId }: UnitListProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{project.totalUnits}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <div className="text-2xl font-bold">{units.length}</div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -105,9 +168,13 @@ export function UnitList({ projectId }: UnitListProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {projectUnits.filter((u) => u.status === 'AVAILABLE').length}
-            </div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <div className="text-2xl font-bold text-green-600">
+                {units.filter((u) => u.status === 'AVAILABLE').length}
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -117,9 +184,13 @@ export function UnitList({ projectId }: UnitListProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-700">
-              {projectUnits.filter((u) => u.status === 'SOLD').length}
-            </div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <div className="text-2xl font-bold text-slate-700">
+                {units.filter((u) => u.status === 'SOLD').length}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -128,19 +199,24 @@ export function UnitList({ projectId }: UnitListProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle>Inventário</CardTitle>
-          <div className="w-[200px]">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                <SelectItem value="AVAILABLE">Disponível</SelectItem>
-                <SelectItem value="RESERVED">Reservado</SelectItem>
-                <SelectItem value="SOLD">Vendido</SelectItem>
-                <SelectItem value="DELIVERED">Entregue</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2">
+            <div className="w-[150px]">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos</SelectItem>
+                  <SelectItem value="AVAILABLE">Disponível</SelectItem>
+                  <SelectItem value="RESERVED">Reservado</SelectItem>
+                  <SelectItem value="SOLD">Vendido</SelectItem>
+                  <SelectItem value="DELIVERED">Entregue</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={() => setCreateUnitOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Nova Unidade
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -157,7 +233,16 @@ export function UnitList({ projectId }: UnitListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUnits.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    <div className="flex justify-center items-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />{' '}
+                      Carregando unidades...
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredUnits.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center h-24">
                     Nenhuma unidade encontrada
@@ -236,6 +321,12 @@ export function UnitList({ projectId }: UnitListProps) {
         open={!!viewUnit}
         onOpenChange={(open) => !open && setViewUnit(null)}
         unit={viewUnit}
+      />
+      <CreateUnitDialog
+        open={createUnitOpen}
+        onOpenChange={setCreateUnitOpen}
+        projectId={projectId}
+        onSave={handleCreateUnit}
       />
       <EditUnitDialog
         open={!!editUnit}
