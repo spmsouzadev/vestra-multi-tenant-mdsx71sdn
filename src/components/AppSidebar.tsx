@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Building2,
   Users,
-  HardHat,
   FileText,
   Settings,
   LogOut,
@@ -43,7 +42,6 @@ export function AppSidebar() {
   const adminLinks = [
     { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { title: 'Projetos', icon: Building, path: '/projects' },
-    { title: 'Unidades', icon: HardHat, path: '/units' },
     { title: 'Proprietários', icon: Users, path: '/owners' },
     { title: 'Configurações', icon: Settings, path: '/settings' },
   ]
