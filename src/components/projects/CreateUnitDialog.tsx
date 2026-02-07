@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Unit } from '@/types'
+import { Unit, Owner } from '@/types'
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,8 @@ const unitSchema = z.object({
     .number()
     .int()
     .min(0, 'Banheiros deve ser um número inteiro não negativo'),
-  status: z.enum(['AVAILABLE', 'RESERVED', 'SOLD', 'DELIVERED']),
+  status: z.enum(['AVAILABLE', 'RESERVED', 'SOLD', 'DELIVERED', 'BLOCKED']),
+  ownerId: z.string().optional(),
 })
 
 type UnitFormValues = z.infer<typeof unitSchema>
@@ -54,7 +55,8 @@ interface CreateUnitDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   projectId: string
-  onSave: (unit: Omit<Unit, 'id' | 'ownerId'>) => Promise<void>
+  onSave: (unit: Omit<Unit, 'id'>) => Promise<void>
+  owners: Owner[]
 }
 
 export function CreateUnitDialog({
@@ -62,6 +64,7 @@ export function CreateUnitDialog({
   onOpenChange,
   projectId,
   onSave,
+  owners,
 }: CreateUnitDialogProps) {
   const [loading, setLoading] = useState(false)
 
@@ -77,16 +80,20 @@ export function CreateUnitDialog({
       bedrooms: 0,
       bathrooms: 0,
       status: 'AVAILABLE',
+      ownerId: 'none',
     },
   })
 
   const onSubmit = async (data: UnitFormValues) => {
     setLoading(true)
     try {
-      await onSave({
+      const unitToSave = {
         ...data,
         projectId,
-      })
+        ownerId: data.ownerId === 'none' ? undefined : data.ownerId,
+      }
+
+      await onSave(unitToSave)
       form.reset()
       onOpenChange(false)
     } catch (error) {
@@ -98,7 +105,7 @@ export function CreateUnitDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova Unidade</DialogTitle>
           <DialogDescription>
@@ -243,6 +250,36 @@ export function CreateUnitDialog({
                       <SelectItem value="RESERVED">Reservado</SelectItem>
                       <SelectItem value="SOLD">Vendido</SelectItem>
                       <SelectItem value="DELIVERED">Entregue</SelectItem>
+                      <SelectItem value="BLOCKED">Bloqueada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="ownerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Proprietário (Opcional)</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || 'none'}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um proprietário" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {owners.map((owner) => (
+                        <SelectItem key={owner.id} value={owner.id}>
+                          {owner.name} ({owner.document})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

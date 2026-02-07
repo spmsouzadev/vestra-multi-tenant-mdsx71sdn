@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Unit } from '@/types'
+import { Unit, Owner } from '@/types'
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,8 @@ const unitSchema = z.object({
     .number()
     .int()
     .min(0, 'Banheiros deve ser um número inteiro não negativo'),
-  status: z.enum(['AVAILABLE', 'RESERVED', 'SOLD', 'DELIVERED']),
+  status: z.enum(['AVAILABLE', 'RESERVED', 'SOLD', 'DELIVERED', 'BLOCKED']),
+  ownerId: z.string().optional(),
 })
 
 type UnitFormValues = z.infer<typeof unitSchema>
@@ -51,6 +52,7 @@ interface EditUnitDialogProps {
   onOpenChange: (open: boolean) => void
   unit: Unit | null
   onSave: (unit: Unit) => void
+  owners: Owner[]
 }
 
 export function EditUnitDialog({
@@ -58,6 +60,7 @@ export function EditUnitDialog({
   onOpenChange,
   unit,
   onSave,
+  owners,
 }: EditUnitDialogProps) {
   const form = useForm<UnitFormValues>({
     resolver: zodResolver(unitSchema),
@@ -68,6 +71,7 @@ export function EditUnitDialog({
       bedrooms: 0,
       bathrooms: 0,
       status: 'AVAILABLE',
+      ownerId: 'none',
     },
   })
 
@@ -80,13 +84,21 @@ export function EditUnitDialog({
         bedrooms: unit.bedrooms || 0,
         bathrooms: unit.bathrooms || 0,
         status: unit.status,
+        ownerId: unit.ownerId || 'none',
       })
     }
   }, [unit, form])
 
   const onSubmit = (data: UnitFormValues) => {
     if (!unit) return
-    onSave({ ...unit, ...data })
+
+    const updatedUnit = {
+      ...unit,
+      ...data,
+      ownerId: data.ownerId === 'none' ? undefined : data.ownerId,
+    }
+
+    onSave(updatedUnit)
     onOpenChange(false)
   }
 
@@ -94,7 +106,7 @@ export function EditUnitDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Unidade {unit.number}</DialogTitle>
           <DialogDescription>
@@ -201,6 +213,36 @@ export function EditUnitDialog({
                       <SelectItem value="RESERVED">Reservado</SelectItem>
                       <SelectItem value="SOLD">Vendido</SelectItem>
                       <SelectItem value="DELIVERED">Entregue</SelectItem>
+                      <SelectItem value="BLOCKED">Bloqueada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="ownerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Proprietário</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um proprietário" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {owners.map((owner) => (
+                        <SelectItem key={owner.id} value={owner.id}>
+                          {owner.name} ({owner.document})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

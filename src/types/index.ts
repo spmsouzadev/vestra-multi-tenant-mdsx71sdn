@@ -57,7 +57,7 @@ export interface Unit {
   typology: string
   area: number
   price: number
-  status: 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'DELIVERED'
+  status: 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'DELIVERED' | 'BLOCKED'
   ownerId?: string
 }
 

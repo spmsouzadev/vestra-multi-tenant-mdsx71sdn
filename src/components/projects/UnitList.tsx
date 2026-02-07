@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Unit } from '@/types'
+import { Unit, Owner } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -18,7 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Eye, Pencil, Trash2, FileText, Plus, Loader2 } from 'lucide-react'
+import {
+  Eye,
+  Pencil,
+  Trash2,
+  FileText,
+  Plus,
+  Loader2,
+  Search,
+} from 'lucide-react'
 import { ViewUnitDialog } from './ViewUnitDialog'
 import { EditUnitDialog } from './EditUnitDialog'
 import { DeleteUnitDialog } from './DeleteUnitDialog'
@@ -27,6 +36,7 @@ import { UnitDocumentManagerDialog } from '@/components/documents/UnitDocumentMa
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { unitService } from '@/services/unitService'
+import { ownerService } from '@/services/ownerService'
 
 interface UnitListProps {
   projectId: string
@@ -36,26 +46,33 @@ export function UnitList({ projectId }: UnitListProps) {
   const { toast } = useToast()
 
   const [units, setUnits] = useState<Unit[]>([])
+  const [owners, setOwners] = useState<Owner[]>([])
   const [loading, setLoading] = useState(true)
 
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
+  const [searchQuery, setSearchQuery] = useState('')
+
   const [viewUnit, setViewUnit] = useState<Unit | null>(null)
   const [editUnit, setEditUnit] = useState<Unit | null>(null)
   const [deleteUnitItem, setDeleteUnitItem] = useState<Unit | null>(null)
   const [createUnitOpen, setCreateUnitOpen] = useState(false)
   const [docsUnit, setDocsUnit] = useState<Unit | null>(null)
 
-  const loadUnits = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
-      const data = await unitService.getUnits(projectId)
-      setUnits(data)
+      const [unitsData, ownersData] = await Promise.all([
+        unitService.getUnits(projectId),
+        ownerService.getOwners(),
+      ])
+      setUnits(unitsData)
+      setOwners(ownersData)
     } catch (error) {
-      console.error('Failed to load units:', error)
+      console.error('Failed to load data:', error)
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: 'Não foi possível carregar as unidades.',
+        description: 'Não foi possível carregar as unidades ou proprietários.',
       })
     } finally {
       setLoading(false)
@@ -63,19 +80,23 @@ export function UnitList({ projectId }: UnitListProps) {
   }
 
   useEffect(() => {
-    loadUnits()
+    loadData()
   }, [projectId])
 
-  const filteredUnits =
-    filterStatus === 'ALL'
-      ? units
-      : units.filter((u) => u.status === filterStatus)
+  const filteredUnits = units.filter((u) => {
+    const matchesStatus = filterStatus === 'ALL' || u.status === filterStatus
+    const matchesSearch =
+      u.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.block.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
 
   const statusColors = {
     AVAILABLE: 'bg-green-100 text-green-700 border-green-200',
     RESERVED: 'bg-amber-100 text-amber-700 border-amber-200',
     SOLD: 'bg-slate-100 text-slate-700 border-slate-200',
     DELIVERED: 'bg-blue-100 text-blue-700 border-blue-200',
+    BLOCKED: 'bg-red-100 text-red-700 border-red-200',
   }
 
   const statusLabels = {
@@ -83,12 +104,18 @@ export function UnitList({ projectId }: UnitListProps) {
     RESERVED: 'Reservado',
     SOLD: 'Vendido',
     DELIVERED: 'Entregue',
+    BLOCKED: 'Bloqueada',
   }
 
-  const handleCreateUnit = async (newUnit: Omit<Unit, 'id' | 'ownerId'>) => {
+  const getOwnerName = (ownerId?: string) => {
+    if (!ownerId) return null
+    return owners.find((o) => o.id === ownerId)?.name || 'Desconhecido'
+  }
+
+  const handleCreateUnit = async (newUnit: Omit<Unit, 'id'>) => {
     try {
       await unitService.createUnit(newUnit)
-      await loadUnits()
+      await loadData()
       toast({
         title: 'Sucesso',
         description: 'Nova unidade criada com sucesso.',
@@ -100,16 +127,14 @@ export function UnitList({ projectId }: UnitListProps) {
         title: 'Erro',
         description: 'Erro ao criar unidade.',
       })
-      throw error // Re-throw to let the dialog know (if it handled loading state)
+      throw error
     }
   }
 
   const handleUpdateUnit = async (updatedUnit: Unit) => {
     try {
-      await unitService.updateUnit(updatedUnit)
-      setUnits((prev) =>
-        prev.map((u) => (u.id === updatedUnit.id ? updatedUnit : u)),
-      )
+      const result = await unitService.updateUnit(updatedUnit)
+      setUnits((prev) => prev.map((u) => (u.id === result.id ? result : u)))
       toast({
         title: 'Unidade atualizada',
         description: `A unidade ${updatedUnit.number} foi atualizada com sucesso.`,
@@ -197,10 +222,19 @@ export function UnitList({ projectId }: UnitListProps) {
 
       {/* Units Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 gap-4">
           <CardTitle>Inventário</CardTitle>
-          <div className="flex gap-2">
-            <div className="w-[150px]">
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="relative w-full sm:w-[200px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Buscar por nº ou bloco..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-[150px]">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
@@ -211,6 +245,7 @@ export function UnitList({ projectId }: UnitListProps) {
                   <SelectItem value="RESERVED">Reservado</SelectItem>
                   <SelectItem value="SOLD">Vendido</SelectItem>
                   <SelectItem value="DELIVERED">Entregue</SelectItem>
+                  <SelectItem value="BLOCKED">Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -227,7 +262,7 @@ export function UnitList({ projectId }: UnitListProps) {
                 <TableHead>Bloco</TableHead>
                 <TableHead>Tipologia</TableHead>
                 <TableHead>Área</TableHead>
-                <TableHead>Preço</TableHead>
+                <TableHead>Proprietário</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Ações</TableHead>
               </TableRow>
@@ -257,7 +292,9 @@ export function UnitList({ projectId }: UnitListProps) {
                     <TableCell>{unit.block}</TableCell>
                     <TableCell>{unit.typology}</TableCell>
                     <TableCell>{unit.area} m²</TableCell>
-                    <TableCell>R$ {unit.price.toLocaleString()}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {getOwnerName(unit.ownerId) || '-'}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         className={cn(
@@ -321,18 +358,21 @@ export function UnitList({ projectId }: UnitListProps) {
         open={!!viewUnit}
         onOpenChange={(open) => !open && setViewUnit(null)}
         unit={viewUnit}
+        owners={owners}
       />
       <CreateUnitDialog
         open={createUnitOpen}
         onOpenChange={setCreateUnitOpen}
         projectId={projectId}
         onSave={handleCreateUnit}
+        owners={owners}
       />
       <EditUnitDialog
         open={!!editUnit}
         onOpenChange={(open) => !open && setEditUnit(null)}
         unit={editUnit}
         onSave={handleUpdateUnit}
+        owners={owners}
       />
       <DeleteUnitDialog
         open={!!deleteUnitItem}

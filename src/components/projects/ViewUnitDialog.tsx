@@ -1,4 +1,4 @@
-import { Unit } from '@/types'
+import { Unit, Owner } from '@/types'
 import {
   Dialog,
   DialogContent,
@@ -9,21 +9,20 @@ import {
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import useAppStore from '@/stores/useAppStore'
 
 interface ViewUnitDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   unit: Unit | null
+  owners: Owner[]
 }
 
 export function ViewUnitDialog({
   open,
   onOpenChange,
   unit,
+  owners,
 }: ViewUnitDialogProps) {
-  const { owners } = useAppStore()
-
   if (!unit) return null
 
   const ownerName = unit.ownerId
