@@ -30,6 +30,7 @@ export function WarrantyCategoriesSettings() {
   const [categories, setCategories] = useState<WarrantyCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingCategory, setEditingCategory] =
     useState<WarrantyCategory | null>(null)
 
@@ -46,9 +47,11 @@ export function WarrantyCategoriesSettings() {
       const data = await warrantyService.getCategories(user.tenantId)
       setCategories(data)
     } catch (error) {
+      console.error(error)
       toast({
         variant: 'destructive',
-        description: 'Erro ao carregar categorias.',
+        title: 'Erro',
+        description: 'Erro ao carregar categorias de garantia.',
       })
     } finally {
       setLoading(false)
@@ -62,9 +65,32 @@ export function WarrantyCategoriesSettings() {
   const handleSubmit = async () => {
     if (!user?.tenantId) return
 
+    if (!formData.name.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Campo obrigatório',
+        description: 'O nome da categoria é obrigatório.',
+      })
+      return
+    }
+
+    if (formData.termMonths <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Valor inválido',
+        description: 'O prazo deve ser maior que zero.',
+      })
+      return
+    }
+
+    setIsSubmitting(true)
     try {
       if (editingCategory) {
-        await warrantyService.updateCategory(editingCategory.id, formData)
+        await warrantyService.updateCategory(editingCategory.id, {
+          name: formData.name,
+          termMonths: formData.termMonths,
+          description: formData.description,
+        })
         toast({
           title: 'Atualizado',
           description: 'Categoria atualizada com sucesso.',
@@ -81,14 +107,20 @@ export function WarrantyCategoriesSettings() {
       setIsDialogOpen(false)
       fetchCategories()
     } catch (error) {
+      console.error(error)
       toast({
         variant: 'destructive',
-        description: 'Erro ao salvar categoria.',
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar a categoria. Tente novamente.',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja remover esta categoria?')) return
+
     try {
       await warrantyService.deleteCategory(id)
       setCategories((prev) => prev.filter((c) => c.id !== id))
@@ -163,26 +195,33 @@ export function WarrantyCategoriesSettings() {
               categories.map((cat) => (
                 <TableRow key={cat.id}>
                   <TableCell className="font-medium">{cat.name}</TableCell>
-                  <TableCell>{cat.termMonths} meses</TableCell>
+                  <TableCell>
+                    {cat.termMonths} meses
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({(cat.termMonths / 12).toFixed(1)} anos)
+                    </span>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {cat.description}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEdit(cat)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600"
-                      onClick={() => handleDelete(cat.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(cat)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(cat.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -203,8 +242,9 @@ export function WarrantyCategoriesSettings() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Nome do Sistema</Label>
+              <Label htmlFor="cat-name">Nome do Sistema</Label>
               <Input
+                id="cat-name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -213,11 +253,12 @@ export function WarrantyCategoriesSettings() {
               />
             </div>
             <div className="grid gap-2">
-              <Label>Prazo (Meses)</Label>
+              <Label htmlFor="cat-term">Prazo (Meses)</Label>
               <div className="flex items-center gap-2">
                 <Input
+                  id="cat-term"
                   type="number"
-                  min="0"
+                  min="1"
                   value={formData.termMonths}
                   onChange={(e) =>
                     setFormData({
@@ -232,8 +273,9 @@ export function WarrantyCategoriesSettings() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Descrição (Opcional)</Label>
+              <Label htmlFor="cat-desc">Descrição (Opcional)</Label>
               <Input
+                id="cat-desc"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -243,10 +285,19 @@ export function WarrantyCategoriesSettings() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleSubmit}>Salvar</Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Salvar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

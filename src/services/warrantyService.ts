@@ -22,7 +22,7 @@ export const warrantyService = {
       id: row.id,
       tenantId: row.tenant_id,
       name: row.name,
-      termMonths: row.term_months,
+      termMonths: row.term_months, // Map from DB column term_months
       description: row.description,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -32,26 +32,31 @@ export const warrantyService = {
   async createCategory(
     category: Omit<WarrantyCategory, 'id' | 'createdAt' | 'updatedAt'>,
   ): Promise<WarrantyCategory> {
+    // We cast to 'any' to avoid TS errors with stale Supabase types if they haven't been regenerated yet
+    const dbInsert: any = {
+      tenant_id: category.tenantId,
+      name: category.name,
+      term_months: category.termMonths,
+      description: category.description,
+    }
+
     const { data, error } = await supabase
       .from('warranty_categories')
-      .insert({
-        tenant_id: category.tenantId,
-        name: category.name,
-        term_months: category.termMonths,
-        description: category.description,
-      })
+      .insert(dbInsert)
       .select()
       .single()
 
     if (error) throw error
+
+    const row: any = data
     return {
-      id: data.id,
-      tenantId: data.tenant_id,
-      name: data.name,
-      termMonths: data.term_months,
-      description: data.description,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      termMonths: row.term_months,
+      description: row.description,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     }
   },
 
@@ -117,8 +122,6 @@ export const warrantyService = {
   ): Promise<UnitWarranty[]> {
     if (projectUnitIds.length === 0) return []
 
-    // Supabase "in" filter has a limit, typically, but for this scale it should be fine.
-    // For very large projects, batching might be needed.
     const { data, error } = await supabase
       .from('unit_warranties')
       .select(
