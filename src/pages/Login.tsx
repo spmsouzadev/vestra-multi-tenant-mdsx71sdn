@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import useAppStore from '@/stores/useAppStore'
-import { Building2, Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import logoVestra from '@/assets/logo_apenas_imagem-aa4c3.png'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Endereço de email inválido' }),
@@ -70,8 +71,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary animate-fade-in-up">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-primary-foreground mb-2">
-            <Building2 className="h-8 w-8" />
+          <div className="mx-auto mb-2 flex justify-center">
+            <img
+              src={logoVestra}
+              alt="VESTRA Logo"
+              className="h-16 w-16 object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-extrabold text-slate-900 tracking-tight uppercase">
             VESTRA

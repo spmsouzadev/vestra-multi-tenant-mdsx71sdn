@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import logoVestra from '@/assets/logo_apenas_imagem-aa4c3.png'
 
 const registerSchema = z
   .object({
@@ -77,14 +78,21 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary animate-fade-in">
-        <CardHeader className="space-y-2">
-          <Link
-            to="/login"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-2"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Login
-          </Link>
+        <CardHeader className="space-y-2 text-center">
+          <div className="relative flex justify-center items-center mb-2">
+            <Link
+              to="/login"
+              className="absolute left-0 inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Link>
+            <img
+              src={logoVestra}
+              alt="VESTRA Logo"
+              className="h-12 w-12 object-contain"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-slate-900">
             Criar Nova Conta
           </CardTitle>
@@ -114,7 +122,9 @@ export default function Register() {
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo</Label>
+                <Label htmlFor="name" className="text-left block">
+                  Nome Completo
+                </Label>
                 <Input
                   id="name"
                   placeholder="João Silva"
@@ -126,14 +136,16 @@ export default function Register() {
                   {...form.register('name')}
                 />
                 {form.formState.errors.name && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-red-500 text-left">
                     {form.formState.errors.name.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-left block">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -146,14 +158,16 @@ export default function Register() {
                   {...form.register('email')}
                 />
                 {form.formState.errors.email && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-red-500 text-left">
                     {form.formState.errors.email.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">Tipo de Conta</Label>
+                <Label htmlFor="role" className="text-left block">
+                  Tipo de Conta
+                </Label>
                 <Select
                   onValueChange={(val) => form.setValue('role', val as any)}
                   disabled={isLoading}
@@ -174,7 +188,7 @@ export default function Register() {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.role && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-red-500 text-left">
                     {form.formState.errors.role.message}
                   </p>
                 )}
@@ -182,7 +196,9 @@ export default function Register() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password" className="text-left block">
+                    Senha
+                  </Label>
                   <Input
                     id="password"
                     type="password"
@@ -194,14 +210,16 @@ export default function Register() {
                     {...form.register('password')}
                   />
                   {form.formState.errors.password && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-red-500 text-left">
                       {form.formState.errors.password.message}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmar</Label>
+                  <Label htmlFor="confirmPassword" className="text-left block">
+                    Confirmar
+                  </Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -213,7 +231,7 @@ export default function Register() {
                     {...form.register('confirmPassword')}
                   />
                   {form.formState.errors.confirmPassword && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-red-500 text-left">
                       {form.formState.errors.confirmPassword.message}
                     </p>
                   )}

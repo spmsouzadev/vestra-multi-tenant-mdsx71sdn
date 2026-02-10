@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Building2, Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import useAppStore from '@/stores/useAppStore'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import logoVestra from '@/assets/logo_apenas_imagem-aa4c3.png'
 
 export function LandingHeader() {
   const { user } = useAppStore()
@@ -48,9 +49,11 @@ export function LandingHeader() {
           className="flex items-center gap-2 font-extrabold text-xl text-slate-900 cursor-pointer tracking-tight uppercase"
           onClick={() => window.scrollTo(0, 0)}
         >
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-            <Building2 className="h-5 w-5" />
-          </div>
+          <img
+            src={logoVestra}
+            alt="VESTRA Logo"
+            className="h-8 w-8 object-contain"
+          />
           VESTRA
         </div>
 

@@ -1,6 +1,7 @@
-import { Building2, Facebook, Instagram, Linkedin, Twitter } from 'lucide-react'
+import { Facebook, Instagram, Linkedin, Twitter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
+import logoVestra from '@/assets/logo_apenas_imagem-aa4c3.png'
 
 export function LandingFooter() {
   const scrollToSection = (id: string) => {
@@ -16,8 +17,12 @@ export function LandingFooter() {
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 font-extrabold text-xl text-white mb-4 tracking-tight uppercase">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                <Building2 className="h-5 w-5" />
+              <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src={logoVestra}
+                  alt="VESTRA Logo"
+                  className="h-6 w-6 object-contain"
+                />
               </div>
               VESTRA
             </div>

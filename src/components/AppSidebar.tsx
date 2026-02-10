@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import useAppStore from '@/stores/useAppStore'
 import { Link, useLocation } from 'react-router-dom'
+import logoVestra from '@/assets/logo_apenas_imagem-aa4c3.png'
 
 export function AppSidebar() {
   const { user, logout } = useAppStore()
@@ -63,10 +64,12 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center py-4">
         <div className="flex items-center gap-2 font-extrabold text-xl px-4 w-full tracking-tight uppercase">
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <span className="group-data-[collapsible=icon]:hidden whitespace-nowrap overflow-hidden">
+          <img
+            src={logoVestra}
+            alt="VESTRA Logo"
+            className="h-8 w-8 object-contain"
+          />
+          <span className="group-data-[collapsible=icon]:hidden whitespace-nowrap overflow-hidden text-slate-900">
             VESTRA
           </span>
         </div>
