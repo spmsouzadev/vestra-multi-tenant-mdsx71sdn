@@ -45,13 +45,13 @@ export function LandingHeader() {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div
-          className="flex items-center gap-2 font-bold text-xl text-slate-900 cursor-pointer"
+          className="flex items-center gap-2 font-extrabold text-xl text-slate-900 cursor-pointer tracking-tight uppercase"
           onClick={() => window.scrollTo(0, 0)}
         >
           <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
             <Building2 className="h-5 w-5" />
           </div>
-          ObraEntregue
+          VESTRA
         </div>
 
         <nav className="hidden md:flex items-center gap-8">

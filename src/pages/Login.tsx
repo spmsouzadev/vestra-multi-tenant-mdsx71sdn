@@ -73,8 +73,8 @@ export default function Login() {
           <div className="mx-auto h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-primary-foreground mb-2">
             <Building2 className="h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-900">
-            SaaS Construtora
+          <CardTitle className="text-2xl font-extrabold text-slate-900 tracking-tight uppercase">
+            VESTRA
           </CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar

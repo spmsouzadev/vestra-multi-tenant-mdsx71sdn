@@ -45,7 +45,7 @@ export function ComparisonSection() {
             Evolua seu processo
           </h2>
           <p className="text-slate-600 mt-2">
-            Veja a diferença entre o método tradicional e a ObraEntregue
+            Veja a diferença entre o método tradicional e a VESTRA
           </p>
         </div>
 

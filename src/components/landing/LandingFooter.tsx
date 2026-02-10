@@ -15,11 +15,11 @@ export function LandingFooter() {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 font-bold text-xl text-white mb-4">
+            <div className="flex items-center gap-2 font-extrabold text-xl text-white mb-4 tracking-tight uppercase">
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
                 <Building2 className="h-5 w-5" />
               </div>
-              ObraEntregue
+              VESTRA
             </div>
             <p className="text-sm text-slate-400 mb-4">
               Plataforma completa para gestão de entrega de obras, vistorias e
@@ -143,7 +143,7 @@ export function LandingFooter() {
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-slate-500">
-            © 2024 ObraEntregue Tecnologia Ltda. Todos os direitos reservados.
+            © 2024 VESTRA Tecnologia Ltda. Todos os direitos reservados.
           </div>
           <div className="flex gap-4">
             <Button variant="ghost" size="sm" asChild>

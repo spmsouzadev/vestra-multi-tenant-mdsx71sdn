@@ -335,7 +335,7 @@ export function RegistrationFormSection() {
                       </label>
                       <p className="text-xs text-muted-foreground">
                         Ao enviar, você concorda em receber comunicações da
-                        ObraEntregue.
+                        VESTRA.
                       </p>
                     </div>
                   </div>

@@ -16,7 +16,7 @@ export function DemoSection() {
     <section className="py-16 bg-primary text-primary-foreground" id="demo">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-2xl md:text-3xl font-bold mb-4">
-          Veja a ObraEntregue em ação
+          Veja a VESTRA em ação
         </h2>
         <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
           Agende uma demonstração rápida de 15 minutos e descubra como podemos

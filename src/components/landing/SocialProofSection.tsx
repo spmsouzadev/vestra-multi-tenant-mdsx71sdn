@@ -29,7 +29,7 @@ export function SocialProofSection() {
     <section className="py-16 bg-white border-b">
       <div className="container mx-auto px-4">
         <p className="text-center text-sm font-medium text-muted-foreground mb-8 uppercase tracking-wider">
-          Mais de 200 construtoras confiam na ObraEntregue
+          Mais de 200 construtoras confiam na VESTRA
         </p>
 
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 mb-16 opacity-70 grayscale">
