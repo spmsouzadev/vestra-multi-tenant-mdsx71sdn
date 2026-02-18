@@ -1,9 +1,9 @@
 -- Create full schema
 
--- Enable UUID extension if not already enabled (though gen_random_uuid is native in pg13+)
+-- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tenants Table
+-- Tenants Table (Base Schema)
 CREATE TABLE IF NOT EXISTS public.tenants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -11,21 +11,8 @@ CREATE TABLE IF NOT EXISTS public.tenants (
   logo_url TEXT,
   primary_color TEXT DEFAULT '#000000',
   status TEXT DEFAULT 'ACTIVE',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  -- New columns from update_tenants_schema
-  admin_email TEXT,
-  plan TEXT DEFAULT 'Standard',
-  subscription_status TEXT DEFAULT 'Active',
-  last_payment_date TIMESTAMPTZ,
-  storage_used BIGINT DEFAULT 0
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Ensure columns exist even if table already existed (idempotency for previous partial runs)
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS admin_email TEXT;
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT 'Standard';
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'Active';
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMPTZ;
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS storage_used BIGINT DEFAULT 0;
 
 -- Profiles Table (Extension of auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
