@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { Tenant, Project, Owner } from '@/types'
+import { Tenant, Project, Owner, BillingRecord } from '@/types'
 
 export const tenantService = {
   async getTenants(): Promise<Tenant[]> {
@@ -18,8 +18,9 @@ export const tenantService = {
       primaryColor: row.primary_color,
       status: row.status,
       createdAt: row.created_at,
-      projectCount: 0, // Will be enriched or separate call
+      projectCount: 0, // Will be enriched via stats or separate call
       adminEmail: row.admin_email,
+      phone: row.phone,
       plan: row.plan,
       subscriptionStatus: row.subscription_status,
       lastPaymentDate: row.last_payment_date,
@@ -47,6 +48,7 @@ export const tenantService = {
       createdAt: data.created_at,
       projectCount: 0,
       adminEmail: data.admin_email,
+      phone: data.phone,
       plan: data.plan,
       subscriptionStatus: data.subscription_status,
       lastPaymentDate: data.last_payment_date,
@@ -64,6 +66,7 @@ export const tenantService = {
         primary_color: updates.primaryColor,
         status: updates.status,
         admin_email: updates.adminEmail,
+        phone: updates.phone,
         plan: updates.plan,
         subscription_status: updates.subscriptionStatus,
       })
@@ -114,7 +117,6 @@ export const tenantService = {
 
   async getTenantOwners(id: string): Promise<Owner[]> {
     // Get owners linked to units in projects of this tenant
-    // We need to query units, filter by projects belonging to tenant
     const { data, error } = await supabase
       .from('units')
       .select(
@@ -136,14 +138,35 @@ export const tenantService = {
           id: item.owner.id,
           name: item.owner.name,
           email: item.owner.email,
-          phone: item.owner.phone,
-          document: item.owner.document,
-          unitsOwned: [], // Could calculate if needed
+          phone: item.owner.phone || '',
+          document: item.owner.document || '',
+          unitsOwned: [],
         })
       }
     })
 
     return Array.from(ownersMap.values())
+  },
+
+  async getBillingHistory(id: string): Promise<BillingRecord[]> {
+    const { data, error } = await supabase
+      .from('billing_history')
+      .select('*')
+      .eq('tenant_id', id)
+      .order('due_date', { ascending: false })
+
+    if (error) throw error
+
+    return data.map((row: any) => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      invoiceNumber: row.invoice_number,
+      amount: row.amount,
+      status: row.status,
+      dueDate: row.due_date,
+      paidAt: row.paid_at,
+      pdfUrl: row.pdf_url,
+    }))
   },
 
   async resetTenantPassword(email: string) {

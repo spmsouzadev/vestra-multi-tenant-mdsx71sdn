@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { tenantService } from '@/services/tenantService'
-import { Tenant, Project, Owner } from '@/types'
+import { Tenant, Project, Owner, BillingRecord } from '@/types'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -32,6 +32,7 @@ import {
   Calendar,
   CheckCircle,
   AlertCircle,
+  Download,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
@@ -42,6 +43,7 @@ export default function TenantDetails() {
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [owners, setOwners] = useState<Owner[]>([])
+  const [billingHistory, setBillingHistory] = useState<BillingRecord[]>([])
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
@@ -52,16 +54,18 @@ export default function TenantDetails() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [t, p, o, s] = await Promise.all([
+        const [t, p, o, s, b] = await Promise.all([
           tenantService.getTenantById(id),
           tenantService.getTenantProjects(id),
           tenantService.getTenantOwners(id),
           tenantService.getTenantStats(id),
+          tenantService.getBillingHistory(id),
         ])
         setTenant(t)
         setProjects(p)
         setOwners(o)
         setStats(s)
+        setBillingHistory(b)
       } catch (error) {
         console.error(error)
         toast({
@@ -96,31 +100,6 @@ export default function TenantDetails() {
     )
   }
 
-  // Mock billing history as requested in user story (since DB doesn't have it fully)
-  const billingHistory = [
-    {
-      id: 1,
-      date: '2025-05-01',
-      amount: 899.0,
-      status: 'Pago',
-      invoice: '#INV-2025-005',
-    },
-    {
-      id: 2,
-      date: '2025-04-01',
-      amount: 899.0,
-      status: 'Pago',
-      invoice: '#INV-2025-004',
-    },
-    {
-      id: 3,
-      date: '2025-03-01',
-      amount: 899.0,
-      status: 'Pago',
-      invoice: '#INV-2025-003',
-    },
-  ]
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-start gap-4">
@@ -149,6 +128,12 @@ export default function TenantDetails() {
                   <Mail className="h-3 w-3" />{' '}
                   {tenant.adminEmail || 'Email não configurado'}
                 </span>
+                {tenant.phone && (
+                  <>
+                    <span>•</span>
+                    <span>{tenant.phone}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="ml-auto flex flex-col items-end gap-1">
@@ -256,6 +241,14 @@ export default function TenantDetails() {
                     </label>
                     <p className="font-medium text-slate-900">
                       {tenant.adminEmail || '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Telefone
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      {tenant.phone || '-'}
                     </p>
                   </div>
                 </div>
@@ -480,7 +473,7 @@ export default function TenantDetails() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data</TableHead>
+                      <TableHead>Data de Vencimento</TableHead>
                       <TableHead>Fatura</TableHead>
                       <TableHead>Valor</TableHead>
                       <TableHead>Status</TableHead>
@@ -488,32 +481,53 @@ export default function TenantDetails() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {billingHistory.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          {format(new Date(item.date), 'dd/MM/yyyy')}
-                        </TableCell>
-                        <TableCell className="font-mono">
-                          {item.invoice}
-                        </TableCell>
-                        <TableCell>
-                          R$ {item.amount.toFixed(2).replace('.', ',')}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className="bg-green-50 text-green-700 border-green-200"
-                          >
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            Download PDF
-                          </Button>
+                    {billingHistory.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          className="text-center text-muted-foreground"
+                        >
+                          Nenhuma fatura encontrada.
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      billingHistory.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            {format(new Date(item.dueDate), 'dd/MM/yyyy')}
+                          </TableCell>
+                          <TableCell className="font-mono">
+                            {item.invoiceNumber}
+                          </TableCell>
+                          <TableCell>
+                            R$ {item.amount.toFixed(2).replace('.', ',')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                item.status === 'PAID'
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : item.status === 'PENDING'
+                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                              }
+                            >
+                              {item.status === 'PAID'
+                                ? 'Pago'
+                                : item.status === 'PENDING'
+                                  ? 'Pendente'
+                                  : 'Atrasado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" disabled>
+                              <Download className="mr-2 h-4 w-4" /> PDF
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

@@ -20,10 +20,22 @@ export interface Tenant {
   projectCount: number
   // New fields
   adminEmail?: string
+  phone?: string
   plan?: string
   subscriptionStatus?: string
   lastPaymentDate?: string
   storageUsed?: number
+}
+
+export interface BillingRecord {
+  id: string
+  tenantId: string
+  invoiceNumber: string
+  amount: number
+  status: 'PAID' | 'PENDING' | 'OVERDUE'
+  dueDate: string
+  paidAt?: string
+  pdfUrl?: string
 }
 
 export type ProjectStatus = 'PLANNING' | 'CONSTRUCTION' | 'DELIVERED'

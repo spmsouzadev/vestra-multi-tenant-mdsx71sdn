@@ -27,6 +27,7 @@ const tenantFormSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   cnpj: z.string().min(14, 'CNPJ inválido'),
   adminEmail: z.string().email('Email inválido').optional().or(z.literal('')),
+  phone: z.string().optional(),
   primaryColor: z.string().optional(),
   status: z.enum(['ACTIVE', 'SUSPENDED']),
   plan: z.string().optional(),
@@ -53,6 +54,7 @@ export function EditTenantSheet({
       name: '',
       cnpj: '',
       adminEmail: '',
+      phone: '',
       primaryColor: '#000000',
       status: 'ACTIVE',
       plan: 'Standard',
@@ -65,6 +67,7 @@ export function EditTenantSheet({
         name: tenant.name,
         cnpj: tenant.cnpj,
         adminEmail: tenant.adminEmail || '',
+        phone: tenant.phone || '',
         primaryColor: tenant.primaryColor || '#000000',
         status: tenant.status,
         plan: tenant.plan || 'Standard',
@@ -76,6 +79,7 @@ export function EditTenantSheet({
     await onSave(tenant.id, {
       ...data,
       adminEmail: data.adminEmail || undefined,
+      phone: data.phone || undefined,
     })
     onOpenChange(false)
   }
@@ -111,17 +115,24 @@ export function EditTenantSheet({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="adminEmail">Email do Administrador</Label>
-            <Input
-              id="adminEmail"
-              type="email"
-              placeholder="admin@construtora.com"
-              {...form.register('adminEmail')}
-            />
-            <p className="text-[0.8rem] text-muted-foreground">
-              Usado para login e recuperação de senha.
-            </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="adminEmail">Email (Login)</Label>
+              <Input
+                id="adminEmail"
+                type="email"
+                placeholder="admin@email.com"
+                {...form.register('adminEmail')}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefone</Label>
+              <Input
+                id="phone"
+                placeholder="(00) 00000-0000"
+                {...form.register('phone')}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
