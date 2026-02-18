@@ -18,6 +18,12 @@ export interface Tenant {
   status: 'ACTIVE' | 'SUSPENDED'
   createdAt: string
   projectCount: number
+  // New fields
+  adminEmail?: string
+  plan?: string
+  subscriptionStatus?: string
+  lastPaymentDate?: string
+  storageUsed?: number
 }
 
 export type ProjectStatus = 'PLANNING' | 'CONSTRUCTION' | 'DELIVERED'

@@ -11,6 +11,7 @@ import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import Register from './pages/Register'
 import Tenants from './pages/Tenants'
+import TenantDetails from './pages/TenantDetails' // Import new page
 import Projects from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
 import Owners from './pages/Owners'
@@ -40,6 +41,8 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/leads" element={<Leads />} />
             <Route path="/tenants" element={<Tenants />} />
+            <Route path="/tenants/:id" element={<TenantDetails />} />{' '}
+            {/* New Route */}
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId" element={<ProjectDetails />} />
             <Route path="/owners" element={<Owners />} />

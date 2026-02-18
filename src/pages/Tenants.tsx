@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import useAppStore from '@/stores/useAppStore'
+import { useState, useEffect } from 'react'
+import { tenantService } from '@/services/tenantService'
+import { Tenant } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,33 +12,65 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
-import { Search, Plus, Building } from 'lucide-react'
-import { Tenant } from '@/types'
+import { Search, Plus, Building, MoreHorizontal, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { EditTenantSheet } from '@/components/tenants/EditTenantSheet'
+import { Link, useNavigate } from 'react-router-dom'
+import { format } from 'date-fns'
 
 export default function Tenants() {
-  const { tenants, addTenant } = useAppStore()
+  const [tenants, setTenants] = useState<Tenant[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
-  // Form State
-  const [formData, setFormData] = useState<Partial<Tenant>>({
-    name: '',
-    cnpj: '',
-    primaryColor: '#000000',
-    status: 'ACTIVE',
-  })
+  // Actions State
+  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null)
+  const [resetPasswordTenant, setResetPasswordTenant] = useState<Tenant | null>(
+    null,
+  )
+  const [isResetting, setIsResetting] = useState(false)
+
+  const loadTenants = async () => {
+    setLoading(true)
+    try {
+      const data = await tenantService.getTenants()
+      // Enrich with project count if needed, but list view usually light
+      // For now we rely on the service basic fetch
+      setTenants(data)
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao carregar construtoras.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadTenants()
+  }, [])
 
   const filteredTenants = tenants.filter(
     (t) =>
@@ -45,27 +78,56 @@ export default function Tenants() {
       t.cnpj.includes(searchTerm),
   )
 
-  const handleCreate = () => {
-    if (!formData.name || !formData.cnpj) return
+  const handleEdit = (tenant: Tenant) => {
+    setEditingTenant(tenant)
+  }
 
-    const newTenant: Tenant = {
-      id: Math.random().toString(),
-      name: formData.name,
-      cnpj: formData.cnpj,
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString().split('T')[0],
-      projectCount: 0,
-      primaryColor: formData.primaryColor,
-      logoUrl: 'https://img.usecurling.com/i?q=building&color=black',
+  const handleUpdate = async (id: string, updates: Partial<Tenant>) => {
+    try {
+      await tenantService.updateTenant(id, updates)
+      await loadTenants()
+      toast({
+        title: 'Atualizado',
+        description: 'Construtora atualizada com sucesso.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao atualizar construtora.',
+      })
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordTenant?.adminEmail) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description:
+          'Este tenant não possui um email administrativo configurado.',
+      })
+      setResetPasswordTenant(null)
+      return
     }
 
-    addTenant(newTenant)
-    setIsDialogOpen(false)
-    setFormData({ name: '', cnpj: '', primaryColor: '#000000' })
-    toast({
-      title: 'Sucesso',
-      description: 'Construtora cadastrada com sucesso.',
-    })
+    setIsResetting(true)
+    try {
+      await tenantService.resetTenantPassword(resetPasswordTenant.adminEmail)
+      toast({
+        title: 'Email enviado',
+        description: `Link de redefinição enviado para ${resetPasswordTenant.adminEmail}`,
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível enviar o email de redefinição.',
+      })
+    } finally {
+      setIsResetting(false)
+      setResetPasswordTenant(null)
+    }
   }
 
   return (
@@ -79,72 +141,9 @@ export default function Tenants() {
             Gerencie os tenants da plataforma
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 hover:bg-slate-800">
-              <Plus className="mr-2 h-4 w-4" /> Nova Construtora
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nova Construtora</DialogTitle>
-              <DialogDescription>
-                Preencha os dados para criar um novo tenant.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Nome
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cnpj" className="text-right">
-                  CNPJ
-                </Label>
-                <Input
-                  id="cnpj"
-                  value={formData.cnpj}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cnpj: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="00.000.000/0000-00"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="color" className="text-right">
-                  Cor Primária
-                </Label>
-                <div className="col-span-3 flex items-center gap-2">
-                  <Input
-                    id="color"
-                    type="color"
-                    value={formData.primaryColor}
-                    onChange={(e) =>
-                      setFormData({ ...formData, primaryColor: e.target.value })
-                    }
-                    className="w-12 h-10 p-1"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {formData.primaryColor}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleCreate}>Cadastrar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button className="bg-slate-900 hover:bg-slate-800">
+          <Plus className="mr-2 h-4 w-4" /> Nova Construtora
+        </Button>
       </div>
 
       <div className="flex items-center gap-4 bg-white p-4 rounded-lg border shadow-sm">
@@ -163,14 +162,23 @@ export default function Tenants() {
             <TableRow>
               <TableHead>Construtora</TableHead>
               <TableHead>CNPJ</TableHead>
-              <TableHead>Projetos</TableHead>
+              <TableHead>Plano</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data Criação</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTenants.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex justify-center items-center">
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                    Carregando...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredTenants.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={6}
@@ -186,21 +194,27 @@ export default function Tenants() {
                   className="hover:bg-slate-50/50 transition-colors"
                 >
                   <TableCell className="font-medium flex items-center gap-3">
-                    {tenant.logoUrl && (
+                    {tenant.logoUrl ? (
                       <img
                         src={tenant.logoUrl}
                         alt=""
                         className="h-8 w-8 rounded bg-slate-100 object-contain p-1"
                       />
+                    ) : (
+                      <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center">
+                        <Building className="h-4 w-4 text-slate-400" />
+                      </div>
                     )}
-                    {tenant.name}
+                    <div className="flex flex-col">
+                      <span>{tenant.name}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                        {tenant.adminEmail}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>{tenant.cnpj}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Building className="h-3 w-3 text-muted-foreground" />
-                      {tenant.projectCount}
-                    </div>
+                    <Badge variant="outline">{tenant.plan || 'Standard'}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -215,12 +229,37 @@ export default function Tenants() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(tenant.createdAt).toLocaleDateString()}
+                    {tenant.createdAt
+                      ? format(new Date(tenant.createdAt), 'dd/MM/yyyy')
+                      : '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      Editar
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Abrir menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleEdit(tenant)}>
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/tenants/${tenant.id}`)}
+                        >
+                          Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setResetPasswordTenant(tenant)}
+                          className="text-red-600"
+                        >
+                          Resetar senha
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -228,6 +267,42 @@ export default function Tenants() {
           </TableBody>
         </Table>
       </div>
+
+      {editingTenant && (
+        <EditTenantSheet
+          open={!!editingTenant}
+          onOpenChange={(open) => !open && setEditingTenant(null)}
+          tenant={editingTenant}
+          onSave={handleUpdate}
+        />
+      )}
+
+      <AlertDialog
+        open={!!resetPasswordTenant}
+        onOpenChange={(open) => !open && setResetPasswordTenant(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar reset de senha</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso enviará um email de redefinição de senha para{' '}
+              <span className="font-bold">
+                {resetPasswordTenant?.adminEmail || 'o email administrativo'}
+              </span>
+              . Tem certeza que deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetPassword}
+              disabled={isResetting}
+            >
+              {isResetting ? 'Enviando...' : 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
