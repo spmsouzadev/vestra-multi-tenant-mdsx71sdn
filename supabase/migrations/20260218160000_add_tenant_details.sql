@@ -17,3 +17,16 @@ CREATE TABLE IF NOT EXISTS billing_history (
 
 -- Create index for performance
 CREATE INDEX IF NOT EXISTS idx_billing_history_tenant_id ON billing_history(tenant_id);
+
+-- Insert sample billing data for existing tenants
+-- Combined with table creation to avoid connection timeouts in separate migration
+INSERT INTO billing_history (tenant_id, invoice_number, amount, status, due_date, paid_at)
+SELECT 
+  id, 
+  'INV-' || to_char(created_at, 'YYYY') || '-001', 
+  CASE WHEN plan = 'Enterprise' THEN 2999.00 WHEN plan = 'Professional' THEN 1499.00 ELSE 899.00 END,
+  'PAID',
+  (created_at + interval '1 month')::date,
+  (created_at + interval '1 month')::date
+FROM tenants
+WHERE NOT EXISTS (SELECT 1 FROM billing_history WHERE billing_history.tenant_id = tenants.id);
