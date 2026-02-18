@@ -3,7 +3,13 @@ import { useParams, Link } from 'react-router-dom'
 import { tenantService } from '@/services/tenantService'
 import { Tenant, Project, Owner } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -23,9 +29,13 @@ import {
   CreditCard,
   Mail,
   Loader2,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default function TenantDetails() {
   const { id } = useParams<{ id: string }>()
@@ -86,8 +96,33 @@ export default function TenantDetails() {
     )
   }
 
+  // Mock billing history as requested in user story (since DB doesn't have it fully)
+  const billingHistory = [
+    {
+      id: 1,
+      date: '2025-05-01',
+      amount: 899.0,
+      status: 'Pago',
+      invoice: '#INV-2025-005',
+    },
+    {
+      id: 2,
+      date: '2025-04-01',
+      amount: 899.0,
+      status: 'Pago',
+      invoice: '#INV-2025-004',
+    },
+    {
+      id: 3,
+      date: '2025-03-01',
+      amount: 899.0,
+      status: 'Pago',
+      invoice: '#INV-2025-003',
+    },
+  ]
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-start gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link to="/tenants">
@@ -111,17 +146,23 @@ export default function TenantDetails() {
                 <span className="font-mono">{tenant.cnpj}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Mail className="h-3 w-3" /> {tenant.adminEmail || 'N/A'}
+                  <Mail className="h-3 w-3" />{' '}
+                  {tenant.adminEmail || 'Email não configurado'}
                 </span>
               </div>
             </div>
-            <Badge
-              className={`ml-auto text-lg ${
-                tenant.status === 'ACTIVE' ? 'bg-green-600' : 'bg-red-600'
-              }`}
-            >
-              {tenant.status === 'ACTIVE' ? 'Ativo' : 'Suspenso'}
-            </Badge>
+            <div className="ml-auto flex flex-col items-end gap-1">
+              <Badge
+                className={`text-sm ${
+                  tenant.status === 'ACTIVE' ? 'bg-green-600' : 'bg-red-600'
+                }`}
+              >
+                {tenant.status === 'ACTIVE' ? 'Ativo' : 'Suspenso'}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                ID: {tenant.id.slice(0, 8)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -130,7 +171,9 @@ export default function TenantDetails() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Projetos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Projetos Ativos
+            </CardTitle>
             <HardHat className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -141,7 +184,9 @@ export default function TenantDetails() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unidades</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Unidades Gerenciadas
+            </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -150,7 +195,9 @@ export default function TenantDetails() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Proprietários</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Proprietários Cadastrados
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -159,70 +206,93 @@ export default function TenantDetails() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Armazenamento</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Armazenamento Usado
+            </CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {((stats?.storage_used || 0) / (1024 * 1024)).toFixed(2)} MB
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              de 50 GB contratados
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="projects">Projetos/Empreendimentos</TabsTrigger>
+          <TabsTrigger value="projects">Projetos</TabsTrigger>
           <TabsTrigger value="owners">Proprietários</TabsTrigger>
-          <TabsTrigger value="financial">Plano e Financeiro</TabsTrigger>
+          <TabsTrigger value="financial">Financeiro</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <CardTitle>Informações da Empresa</CardTitle>
+              <CardTitle>Informações Corporativas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Razão Social
-                  </label>
-                  <p>{tenant.name}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Razão Social
+                    </label>
+                    <p className="font-medium text-slate-900">{tenant.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      CNPJ
+                    </label>
+                    <p className="font-medium text-slate-900">{tenant.cnpj}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Email Administrativo
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      {tenant.adminEmail || '-'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    CNPJ
-                  </label>
-                  <p>{tenant.cnpj}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Email Administrativo
-                  </label>
-                  <p>{tenant.adminEmail || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Data de Cadastro
-                  </label>
-                  <p>
-                    {tenant.createdAt
-                      ? format(new Date(tenant.createdAt), 'dd/MM/yyyy')
-                      : '-'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Cor Primária
-                  </label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div
-                      className="h-4 w-4 rounded-full border"
-                      style={{ backgroundColor: tenant.primaryColor }}
-                    />
-                    <span>{tenant.primaryColor}</span>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Data de Cadastro
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      {tenant.createdAt
+                        ? format(new Date(tenant.createdAt), 'dd/MM/yyyy', {
+                            locale: ptBR,
+                          })
+                        : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Cor da Marca
+                    </label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div
+                        className="h-6 w-6 rounded-full border shadow-sm"
+                        style={{ backgroundColor: tenant.primaryColor }}
+                      />
+                      <span className="font-mono text-sm bg-slate-100 px-2 py-0.5 rounded">
+                        {tenant.primaryColor}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Plano Vigente
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      {tenant.plan || 'Standard'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -233,14 +303,17 @@ export default function TenantDetails() {
         <TabsContent value="projects">
           <Card>
             <CardHeader>
-              <CardTitle>Empreendimentos</CardTitle>
+              <CardTitle>Empreendimentos ({projects.length})</CardTitle>
+              <CardDescription>
+                Lista de projetos imobiliários gerenciados.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Cidade/UF</TableHead>
+                    <TableHead>Localização</TableHead>
                     <TableHead>Fase</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Unidades</TableHead>
@@ -251,7 +324,7 @@ export default function TenantDetails() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="text-center text-muted-foreground"
+                        className="text-center text-muted-foreground py-8"
                       >
                         Nenhum projeto encontrado.
                       </TableCell>
@@ -259,7 +332,14 @@ export default function TenantDetails() {
                   ) : (
                     projects.map((p) => (
                       <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.name}</TableCell>
+                        <TableCell className="font-medium">
+                          <Link
+                            to={`/projects/${p.id}`}
+                            className="hover:underline text-primary"
+                          >
+                            {p.name}
+                          </Link>
+                        </TableCell>
                         <TableCell>
                           {p.city}/{p.state}
                         </TableCell>
@@ -282,7 +362,10 @@ export default function TenantDetails() {
         <TabsContent value="owners">
           <Card>
             <CardHeader>
-              <CardTitle>Base de Proprietários</CardTitle>
+              <CardTitle>Base de Proprietários ({owners.length})</CardTitle>
+              <CardDescription>
+                Clientes finais vinculados aos projetos.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -291,14 +374,15 @@ export default function TenantDetails() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Documento</TableHead>
+                    <TableHead>Telefone</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {owners.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={3}
-                        className="text-center text-muted-foreground"
+                        colSpan={4}
+                        className="text-center text-muted-foreground py-8"
                       >
                         Nenhum proprietário encontrado.
                       </TableCell>
@@ -309,6 +393,7 @@ export default function TenantDetails() {
                         <TableCell className="font-medium">{o.name}</TableCell>
                         <TableCell>{o.email}</TableCell>
                         <TableCell>{o.document || '-'}</TableCell>
+                        <TableCell>{o.phone || '-'}</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -319,37 +404,121 @@ export default function TenantDetails() {
         </TabsContent>
 
         <TabsContent value="financial">
-          <Card>
-            <CardHeader>
-              <CardTitle>Assinatura e Pagamentos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="p-4 border rounded-lg bg-slate-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Plano Atual</h3>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Assinatura</CardTitle>
+                <CardDescription>Detalhes do plano contratado.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="p-4 border rounded-lg bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <CreditCard className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold">Plano Atual</h3>
+                      </div>
+                      <p className="text-2xl font-bold">
+                        {tenant.plan || 'Free'}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="self-start mt-2 bg-green-100 text-green-800 hover:bg-green-200"
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />{' '}
+                      {tenant.subscriptionStatus || 'Ativo'}
+                    </Badge>
                   </div>
-                  <p className="text-xl font-bold">{tenant.plan || 'Free'}</p>
-                  <Badge variant="secondary" className="mt-2">
-                    {tenant.subscriptionStatus || 'Active'}
-                  </Badge>
-                </div>
-                <div className="p-4 border rounded-lg bg-slate-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Database className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Uso de Armazenamento</h3>
+
+                  <div className="p-4 border rounded-lg bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold">Ciclo de Faturamento</h3>
+                      </div>
+                      <p className="text-lg font-medium">Mensal</p>
+                      <p className="text-sm text-muted-foreground">
+                        Próxima cobrança: 01/06/2025
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xl font-bold">
-                    {((stats?.storage_used || 0) / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    de 10 GB permitidos
-                  </p>
+
+                  <div className="p-4 border rounded-lg bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Database className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold">Armazenamento</h3>
+                      </div>
+                      <p className="text-2xl font-bold">
+                        {((stats?.storage_used || 0) / (1024 * 1024)).toFixed(
+                          2,
+                        )}{' '}
+                        MB
+                      </p>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2">
+                        <div
+                          className="bg-primary h-1.5 rounded-full"
+                          style={{ width: '5%' }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        5% utilizado
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Cobranças</CardTitle>
+                <CardDescription>Últimas faturas geradas.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Fatura</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billingHistory.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          {format(new Date(item.date), 'dd/MM/yyyy')}
+                        </TableCell>
+                        <TableCell className="font-mono">
+                          {item.invoice}
+                        </TableCell>
+                        <TableCell>
+                          R$ {item.amount.toFixed(2).replace('.', ',')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="bg-green-50 text-green-700 border-green-200"
+                          >
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            Download PDF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

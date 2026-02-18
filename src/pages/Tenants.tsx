@@ -30,10 +30,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
-import { Search, Plus, Building, MoreHorizontal, Loader2 } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  Building,
+  MoreHorizontal,
+  Loader2,
+  KeyRound,
+  Eye,
+  Edit,
+} from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { EditTenantSheet } from '@/components/tenants/EditTenantSheet'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 
 export default function Tenants() {
@@ -54,8 +63,6 @@ export default function Tenants() {
     setLoading(true)
     try {
       const data = await tenantService.getTenants()
-      // Enrich with project count if needed, but list view usually light
-      // For now we rely on the service basic fetch
       setTenants(data)
     } catch (error) {
       toast({
@@ -117,6 +124,7 @@ export default function Tenants() {
       toast({
         title: 'Email enviado',
         description: `Link de redefinição enviado para ${resetPasswordTenant.adminEmail}`,
+        className: 'bg-green-500 text-white border-none',
       })
     } catch (error) {
       toast({
@@ -131,7 +139,7 @@ export default function Tenants() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
@@ -207,14 +215,16 @@ export default function Tenants() {
                     )}
                     <div className="flex flex-col">
                       <span>{tenant.name}</span>
-                      <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-                        {tenant.adminEmail}
+                      <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        {tenant.adminEmail || 'Sem email admin'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>{tenant.cnpj}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{tenant.plan || 'Standard'}</Badge>
+                    <Badge variant="outline" className="bg-slate-50">
+                      {tenant.plan || 'Standard'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -244,19 +254,19 @@ export default function Tenants() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleEdit(tenant)}>
-                          Editar
+                          <Edit className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => navigate(`/tenants/${tenant.id}`)}
                         >
-                          Detalhes
+                          <Eye className="mr-2 h-4 w-4" /> Detalhes
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setResetPasswordTenant(tenant)}
-                          className="text-red-600"
+                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
                         >
-                          Resetar senha
+                          <KeyRound className="mr-2 h-4 w-4" /> Resetar senha
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -285,11 +295,15 @@ export default function Tenants() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar reset de senha</AlertDialogTitle>
             <AlertDialogDescription>
-              Isso enviará um email de redefinição de senha para{' '}
-              <span className="font-bold">
+              Isso enviará um email oficial da <strong>VESTRA</strong> com
+              instruções de redefinição de senha para{' '}
+              <span className="font-bold text-slate-900">
                 {resetPasswordTenant?.adminEmail || 'o email administrativo'}
               </span>
-              . Tem certeza que deseja continuar?
+              .
+              <br />
+              <br />O usuário atual precisará criar uma nova senha para acessar
+              a plataforma.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -297,8 +311,16 @@ export default function Tenants() {
             <AlertDialogAction
               onClick={handleResetPassword}
               disabled={isResetting}
+              className="bg-red-600 hover:bg-red-700"
             >
-              {isResetting ? 'Enviando...' : 'Confirmar'}
+              {isResetting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                'Confirmar Envio'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -65,6 +65,7 @@ export const tenantService = {
         status: updates.status,
         admin_email: updates.adminEmail,
         plan: updates.plan,
+        subscription_status: updates.subscriptionStatus,
       })
       .eq('id', id)
 
@@ -77,7 +78,10 @@ export const tenantService = {
     })
 
     if (error) throw error
-    return data
+    // RPC returns an array of objects, we expect one row
+    return data && data.length > 0
+      ? data[0]
+      : { project_count: 0, unit_count: 0, storage_used: 0 }
   },
 
   async getTenantProjects(id: string): Promise<Project[]> {
@@ -85,6 +89,7 @@ export const tenantService = {
       .from('projects')
       .select('*')
       .eq('tenant_id', id)
+      .order('created_at', { ascending: false })
 
     if (error) throw error
 
@@ -109,6 +114,7 @@ export const tenantService = {
 
   async getTenantOwners(id: string): Promise<Owner[]> {
     // Get owners linked to units in projects of this tenant
+    // We need to query units, filter by projects belonging to tenant
     const { data, error } = await supabase
       .from('units')
       .select(

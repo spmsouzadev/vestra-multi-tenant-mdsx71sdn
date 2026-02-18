@@ -86,13 +86,13 @@ export function EditTenantSheet({
         <SheetHeader>
           <SheetTitle>Editar Construtora</SheetTitle>
           <SheetDescription>
-            Atualize as informações do tenant.
+            Atualize as informações e plano da construtora.
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome da Construtora</Label>
+            <Label htmlFor="name">Razão Social</Label>
             <Input id="name" {...form.register('name')} />
             {form.formState.errors.name && (
               <p className="text-xs text-red-500">
@@ -112,13 +112,16 @@ export function EditTenantSheet({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="adminEmail">Email do Admin</Label>
+            <Label htmlFor="adminEmail">Email do Administrador</Label>
             <Input
               id="adminEmail"
               type="email"
               placeholder="admin@construtora.com"
               {...form.register('adminEmail')}
             />
+            <p className="text-[0.8rem] text-muted-foreground">
+              Usado para login e recuperação de senha.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -139,7 +142,7 @@ export function EditTenantSheet({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="plan">Plano</Label>
+              <Label htmlFor="plan">Plano de Assinatura</Label>
               <Select
                 value={form.watch('plan')}
                 onValueChange={(val) => form.setValue('plan', val)}
@@ -162,25 +165,29 @@ export function EditTenantSheet({
               <Input
                 id="primaryColor"
                 type="color"
-                className="w-12 h-10 p-1"
+                className="w-16 h-10 p-1 cursor-pointer"
                 {...form.register('primaryColor')}
               />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm font-mono text-muted-foreground bg-slate-100 px-2 py-1 rounded">
                 {form.watch('primaryColor')}
               </span>
             </div>
           </div>
 
-          <SheetFooter className="mt-6">
+          <SheetFooter className="mt-8">
             <Button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="w-full sm:w-auto"
+              className="w-full"
             >
-              {form.formState.isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Alterações'
               )}
-              Salvar Alterações
             </Button>
           </SheetFooter>
         </form>
