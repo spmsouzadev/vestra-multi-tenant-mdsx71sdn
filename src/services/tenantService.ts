@@ -170,9 +170,10 @@ export const tenantService = {
   },
 
   async resetTenantPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/update-password`,
+    const { error } = await supabase.functions.invoke('reset-tenant-password', {
+      body: { email },
     })
+
     if (error) throw error
     return true
   },
