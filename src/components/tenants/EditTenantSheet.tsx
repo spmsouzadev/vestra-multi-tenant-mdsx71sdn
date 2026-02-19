@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Tenant } from '@/types'
+import { tenantService } from '@/services/tenantService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload, Building, X } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 const tenantFormSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
@@ -48,6 +50,11 @@ export function EditTenantSheet({
   tenant,
   onSave,
 }: EditTenantSheetProps) {
+  const { toast } = useToast()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const form = useForm<TenantFormValues>({
     resolver: zodResolver(tenantFormSchema),
     defaultValues: {
@@ -72,16 +79,81 @@ export function EditTenantSheet({
         status: tenant.status,
         plan: tenant.plan || 'Standard',
       })
+      setPreviewUrl(tenant.logoUrl || null)
+      setSelectedFile(null)
     }
   }, [tenant, form])
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: 'destructive',
+          title: 'Arquivo inválido',
+          description: 'Por favor selecione uma imagem.',
+        })
+        return
+      }
+
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
+    }
+  }
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
+  }
+
+  const removeLogo = () => {
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const onSubmit = async (data: TenantFormValues) => {
-    await onSave(tenant.id, {
-      ...data,
-      adminEmail: data.adminEmail || undefined,
-      phone: data.phone || undefined,
-    })
-    onOpenChange(false)
+    try {
+      let logoUrl = tenant.logoUrl
+
+      // Upload logo if selected
+      if (selectedFile) {
+        try {
+          logoUrl = await tenantService.uploadTenantLogo(
+            tenant.id,
+            selectedFile,
+          )
+        } catch (error) {
+          console.error('Error uploading logo:', error)
+          toast({
+            variant: 'destructive',
+            title: 'Erro no upload',
+            description: 'Não foi possível fazer o upload da logo.',
+          })
+          return // Stop execution if upload fails
+        }
+      } else if (previewUrl === null && tenant.logoUrl) {
+        // Logic to remove logo if needed (not strictly in requirements but good for UX)
+        // For now, we assume if previewUrl is null and user explicitly removed it, we might want to clear it
+        // But let's stick to simple replacement logic
+        logoUrl = undefined
+      }
+
+      await onSave(tenant.id, {
+        ...data,
+        adminEmail: data.adminEmail || undefined,
+        phone: data.phone || undefined,
+        logoUrl: logoUrl, // Include the new or existing logo URL
+      })
+
+      onOpenChange(false)
+    } catch (error) {
+      // Error handling is done in the parent component or via onSave promise rejection
+      console.error(error)
+    }
   }
 
   return (
@@ -90,11 +162,62 @@ export function EditTenantSheet({
         <SheetHeader>
           <SheetTitle>Editar Construtora</SheetTitle>
           <SheetDescription>
-            Atualize as informações e plano da construtora.
+            Atualize as informações e visual da construtora.
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
+          <div className="space-y-2">
+            <Label>Logo da Empresa</Label>
+            <div className="flex items-start gap-4 p-4 border rounded-lg bg-slate-50">
+              <div className="relative group shrink-0">
+                {previewUrl ? (
+                  <div className="h-20 w-20 rounded-md border bg-white flex items-center justify-center overflow-hidden relative">
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="h-full w-full object-contain p-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="absolute top-1 right-1 bg-white/80 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 rounded-md border bg-white flex items-center justify-center text-muted-foreground">
+                    <Building className="h-8 w-8 opacity-20" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2 flex-1">
+                <p className="text-xs text-muted-foreground">
+                  Selecione uma imagem (JPG, PNG ou SVG) para personalizar o
+                  ambiente.
+                </p>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.svg"
+                  onChange={handleFileChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={triggerFileInput}
+                  className="w-full"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Selecionar Imagem
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Razão Social</Label>
             <Input id="name" {...form.register('name')} />

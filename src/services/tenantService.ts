@@ -76,6 +76,25 @@ export const tenantService = {
     if (error) throw error
   },
 
+  async uploadTenantLogo(tenantId: string, file: File): Promise<string> {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `logos/${tenantId}/${Date.now()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('tenant-logos')
+      .upload(fileName, file, {
+        upsert: true,
+      })
+
+    if (uploadError) throw uploadError
+
+    const { data } = supabase.storage
+      .from('tenant-logos')
+      .getPublicUrl(fileName)
+
+    return data.publicUrl
+  },
+
   async getTenantStats(id: string) {
     const { data, error } = await supabase.rpc('get_tenant_stats', {
       tenant_uuid: id,
