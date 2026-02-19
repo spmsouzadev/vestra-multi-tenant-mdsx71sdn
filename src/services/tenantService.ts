@@ -3,9 +3,10 @@ import { Tenant, Project, Owner, BillingRecord } from '@/types'
 
 export const tenantService = {
   async getTenants(): Promise<Tenant[]> {
+    // Added projects(count) to fetch project count efficiently in the list query
     const { data, error } = await supabase
       .from('tenants')
-      .select('*')
+      .select('*, projects(count)')
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -18,7 +19,7 @@ export const tenantService = {
       primaryColor: row.primary_color,
       status: row.status,
       createdAt: row.created_at,
-      projectCount: 0, // Will be enriched via stats or separate call
+      projectCount: row.projects?.[0]?.count ?? 0, // Map the count from the join
       adminEmail: row.admin_email,
       phone: row.phone,
       plan: row.plan,
@@ -81,10 +82,9 @@ export const tenantService = {
     })
 
     if (error) throw error
-    // RPC returns an array of objects, we expect one row
-    return data && data.length > 0
-      ? data[0]
-      : { project_count: 0, unit_count: 0, storage_used: 0 }
+
+    // RPC returns the JSON object directly
+    return data
   },
 
   async getTenantProjects(id: string): Promise<Project[]> {
