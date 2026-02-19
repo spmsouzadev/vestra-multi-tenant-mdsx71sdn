@@ -56,7 +56,11 @@ INSERT INTO public.billing_history (tenant_id, invoice_number, amount, status, d
 SELECT 
   id, 
   'INV-' || to_char(NOW(), 'YYYY') || '-' || substring(md5(random()::text) from 1 for 4), 
-  CASE WHEN plan = 'Enterprise' THEN 2999.00 WHEN plan = 'Professional' THEN 1499.00 ELSE 899.00 END,
+  CASE 
+    WHEN random() < 0.2 THEN 2999.00 
+    WHEN random() < 0.5 THEN 1499.00 
+    ELSE 899.00 
+  END,
   'PAID',
   (NOW() - interval '1 month'),
   'Mensalidade - ' || to_char(NOW() - interval '1 month', 'MM/YYYY'),
@@ -70,7 +74,11 @@ INSERT INTO public.billing_history (tenant_id, invoice_number, amount, status, d
 SELECT 
   id, 
   'INV-' || to_char(NOW(), 'YYYY') || '-' || substring(md5(random()::text) from 1 for 4), 
-  CASE WHEN plan = 'Enterprise' THEN 2999.00 WHEN plan = 'Professional' THEN 1499.00 ELSE 899.00 END,
+  CASE 
+    WHEN random() < 0.2 THEN 2999.00 
+    WHEN random() < 0.5 THEN 1499.00 
+    ELSE 899.00 
+  END,
   'PENDING',
   (NOW() + interval '5 days'),
   'Mensalidade - ' || to_char(NOW(), 'MM/YYYY'),
