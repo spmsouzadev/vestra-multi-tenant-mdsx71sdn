@@ -1,4 +1,4 @@
--- Ensure billing_history table exists for the financial module
+-- Create billing_history if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.billing_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.billing_history (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create index for billing history if not exists
+-- Index
 CREATE INDEX IF NOT EXISTS idx_billing_history_tenant_id ON public.billing_history(tenant_id);
 
 -- Ensure get_tenant_stats function exists and is correct for the dashboard
@@ -29,13 +29,13 @@ AS $$
 BEGIN
   RETURN QUERY
   SELECT
-    (SELECT COUNT(*) FROM projects WHERE projects.tenant_id = tenant_uuid)::BIGINT as project_count,
-    (SELECT COUNT(*) FROM units u JOIN projects p ON u.project_id = p.id WHERE p.tenant_id = tenant_uuid)::BIGINT as unit_count,
+    (SELECT COUNT(*) FROM projects WHERE projects.tenant_id = tenant_uuid)::BIGINT,
+    (SELECT COUNT(*) FROM units u JOIN projects p ON u.project_id = p.id WHERE p.tenant_id = tenant_uuid)::BIGINT,
     (
       SELECT COALESCE(SUM(d.file_size), 0)
       FROM documents d
       JOIN projects p ON d.project_id = p.id
       WHERE p.tenant_id = tenant_uuid
-    )::BIGINT as storage_used;
+    )::BIGINT;
 END;
 $$;
