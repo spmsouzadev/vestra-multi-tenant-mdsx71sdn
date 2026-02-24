@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppProvider } from '@/stores/useAppStore'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
@@ -26,6 +27,7 @@ const App = () => (
     <BrowserRouter
       future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
     >
+      <GoogleAnalytics />
       <TooltipProvider>
         <Toaster />
         <Sonner />

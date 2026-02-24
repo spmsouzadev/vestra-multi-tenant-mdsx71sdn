@@ -26561,6 +26561,41 @@ function useAppStore() {
 	if (context === void 0) throw new Error("useAppStore must be used within an AppProvider");
 	return context;
 }
+function GoogleAnalytics() {
+	const location = useLocation();
+	const measurementId = "G-XXXXXXXXXX";
+	(0, import_react.useEffect)(() => {
+		if (!document.getElementById("ga-script")) {
+			const script1 = document.createElement("script");
+			script1.id = "ga-script";
+			script1.async = true;
+			script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+			document.head.appendChild(script1);
+			const script2 = document.createElement("script");
+			script2.id = "ga-config";
+			script2.innerHTML = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', '${measurementId}', { send_page_view: false });
+      `;
+			document.head.appendChild(script2);
+		}
+	}, [measurementId]);
+	(0, import_react.useEffect)(() => {
+		const handlePageView = () => {
+			if (window.gtag) window.gtag("event", "page_view", {
+				page_path: location.pathname + location.search,
+				page_location: window.location.href,
+				page_title: document.title
+			});
+		};
+		const timeoutId = setTimeout(handlePageView, 100);
+		return () => clearTimeout(timeoutId);
+	}, [location, measurementId]);
+	return null;
+}
 var REACT_LAZY_TYPE = Symbol.for("react.lazy");
 var use = import_react[" use ".trim().toString()];
 function isPromiseLike(value) {
@@ -28620,7 +28655,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				value,
 				getSnapshot
 			]);
-			useEffect$19(function() {
+			useEffect$20(function() {
 				checkIfSnapshotChanged(inst) && forceUpdate({ inst });
 				return subscribe$1(function() {
 					checkIfSnapshotChanged(inst) && forceUpdate({ inst });
@@ -28643,7 +28678,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 			return getSnapshot();
 		}
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-		var React$34 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$31 = React$34.useState, useEffect$19 = React$34.useEffect, useLayoutEffect$1 = React$34.useLayoutEffect, useDebugValue = React$34.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+		var React$34 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$31 = React$34.useState, useEffect$20 = React$34.useEffect, useLayoutEffect$1 = React$34.useLayoutEffect, useDebugValue = React$34.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
 		exports.useSyncExternalStore = void 0 !== React$34.useSyncExternalStore ? React$34.useSyncExternalStore : shim;
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
 	})();
@@ -74832,12 +74867,12 @@ var NotFound = () => {
 	});
 };
 var NotFound_default = NotFound;
-var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
+var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(BrowserRouter, {
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
-	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, { children: [
+	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(GoogleAnalytics, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, { children: [
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$1, {}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, { children: [
@@ -74914,9 +74949,9 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { child
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound_default, {})
 			})
 		] })
-	] })
+	] })]
 }) });
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-Dt2JEOmX.js.map
+//# sourceMappingURL=index-C_Jzn_nk.js.map
