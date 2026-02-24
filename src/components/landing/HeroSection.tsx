@@ -17,12 +17,12 @@ export function HeroSection() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
           </span>
-          Plataforma #1 em Gestão de Pós-Obra
+          Plataforma #1 em Gestão de Obras e Pós-Obra
         </div>
 
         <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 max-w-4xl mx-auto animate-fade-in-up">
-          Entrega de imóveis sem papel, com rastreabilidade e{' '}
-          <span className="text-primary">segurança jurídica</span>
+          Transforme a gestão da sua construtora com a{' '}
+          <span className="text-primary">Vestra</span>
         </h1>
 
         <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto animate-fade-in-up delay-100">

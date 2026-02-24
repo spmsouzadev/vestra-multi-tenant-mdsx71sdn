@@ -30268,16 +30268,16 @@ function HeroSection() {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 						className: "relative flex h-2 w-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "relative inline-flex rounded-full h-2 w-2 bg-blue-500" })]
-					}), "Plataforma #1 em Gestão de Pós-Obra"]
+					}), "Plataforma #1 em Gestão de Obras e Pós-Obra"]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
 					className: "text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 max-w-4xl mx-auto animate-fade-in-up",
 					children: [
-						"Entrega de imóveis sem papel, com rastreabilidade e",
+						"Transforme a gestão da sua construtora com a",
 						" ",
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 							className: "text-primary",
-							children: "segurança jurídica"
+							children: "Vestra"
 						})
 					]
 				}),
@@ -30333,13 +30333,13 @@ var CardHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @_
 	...props
 }));
 CardHeader.displayName = "CardHeader";
-var CardTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+var CardTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 	ref,
 	className: cn("text-2xl font-semibold leading-none tracking-tight", className),
 	...props
 }));
 CardTitle.displayName = "CardTitle";
-var CardDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+var CardDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 	ref,
 	className: cn("text-sm text-muted-foreground", className),
 	...props
@@ -31110,8 +31110,8 @@ function SecuritySection() {
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: "bg-blue-900/50 p-2 rounded-lg text-blue-400",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lock, { className: "h-6 w-6" })
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-									className: "font-bold text-white mb-1",
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									className: "font-bold text-white mb-1 text-base",
 									children: "Criptografia de Ponta a Ponta"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-slate-400",
@@ -31125,8 +31125,8 @@ function SecuritySection() {
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: "bg-purple-900/50 p-2 rounded-lg text-purple-400",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileSearch, { className: "h-6 w-6" })
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-									className: "font-bold text-white mb-1",
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									className: "font-bold text-white mb-1 text-base",
 									children: "Audit Trail Imutável"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-slate-400",
@@ -31149,7 +31149,7 @@ function SecuritySection() {
 								value: "item-1",
 								className: "border-slate-700",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionTrigger, {
-									className: "text-white hover:text-blue-400",
+									className: "text-white hover:text-blue-400 text-left",
 									children: "O sistema está adequado à LGPD?"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionContent, {
 									className: "text-slate-400",
@@ -31160,7 +31160,7 @@ function SecuritySection() {
 								value: "item-2",
 								className: "border-slate-700",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionTrigger, {
-									className: "text-white hover:text-blue-400",
+									className: "text-white hover:text-blue-400 text-left",
 									children: "As assinaturas têm validade jurídica?"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionContent, {
 									className: "text-slate-400",
@@ -31171,7 +31171,7 @@ function SecuritySection() {
 								value: "item-3",
 								className: "border-slate-700",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionTrigger, {
-									className: "text-white hover:text-blue-400",
+									className: "text-white hover:text-blue-400 text-left",
 									children: "Como funciona o controle de acesso (RBAC)?"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccordionContent, {
 									className: "text-slate-400",
@@ -74919,4 +74919,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { child
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-Bx1_UJS1.js.map
+//# sourceMappingURL=index-Dt2JEOmX.js.map

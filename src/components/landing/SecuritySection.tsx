@@ -32,9 +32,9 @@ export function SecuritySection() {
                     <Lock className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-white mb-1">
+                    <h3 className="font-bold text-white mb-1 text-base">
                       Criptografia de Ponta a Ponta
-                    </h4>
+                    </h3>
                     <p className="text-sm text-slate-400">
                       Dados criptografados em repouso (AES-256) e em trânsito
                       (TLS 1.3).
@@ -49,9 +49,9 @@ export function SecuritySection() {
                     <FileSearch className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-white mb-1">
+                    <h3 className="font-bold text-white mb-1 text-base">
                       Audit Trail Imutável
-                    </h4>
+                    </h3>
                     <p className="text-sm text-slate-400">
                       Registro completo de todas as ações: quem fez, o que fez e
                       quando fez.
@@ -69,7 +69,7 @@ export function SecuritySection() {
             </h3>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-slate-700">
-                <AccordionTrigger className="text-white hover:text-blue-400">
+                <AccordionTrigger className="text-white hover:text-blue-400 text-left">
                   O sistema está adequado à LGPD?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-400">
@@ -80,7 +80,7 @@ export function SecuritySection() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2" className="border-slate-700">
-                <AccordionTrigger className="text-white hover:text-blue-400">
+                <AccordionTrigger className="text-white hover:text-blue-400 text-left">
                   As assinaturas têm validade jurídica?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-400">
@@ -90,7 +90,7 @@ export function SecuritySection() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-slate-700">
-                <AccordionTrigger className="text-white hover:text-blue-400">
+                <AccordionTrigger className="text-white hover:text-blue-400 text-left">
                   Como funciona o controle de acesso (RBAC)?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-400">
