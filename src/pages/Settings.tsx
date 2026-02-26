@@ -12,9 +12,11 @@ import { Building, User, Shield, ShieldCheck } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Settings() {
   const { user, consents, updateConsents } = useAppStore()
+  const { toast } = useToast()
 
   if (!user) return <Navigate to="/login" />
 
@@ -33,7 +35,7 @@ export default function Settings() {
             <User className="h-4 w-4" /> Perfil
           </TabsTrigger>
           <TabsTrigger value="privacy" className="gap-2 py-2 shrink-0">
-            <ShieldCheck className="h-4 w-4" /> Privacidade (LGPD)
+            <ShieldCheck className="h-4 w-4" /> Privacidade e Consentimento
           </TabsTrigger>
           {(user.role === 'ADMIN' || user.role === 'MASTER') && (
             <TabsTrigger value="company" className="gap-2 py-2 shrink-0">
@@ -75,7 +77,7 @@ export default function Settings() {
         <TabsContent value="privacy" className="animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>Privacidade e Consentimentos</CardTitle>
+              <CardTitle>Privacidade e Consentimento</CardTitle>
               <CardDescription>
                 Gerencie como a VESTRA e nossos parceiros processam seus dados,
                 em conformidade com a Lei Geral de Proteção de Dados (LGPD).
@@ -84,7 +86,7 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="flex items-start justify-between gap-4 py-2 border-b">
                 <div className="space-y-1">
-                  <Label className="text-base">Essenciais (Obrigatório)</Label>
+                  <Label className="text-base">Termos de Uso</Label>
                   <p className="text-sm text-muted-foreground">
                     Necessários para o funcionamento básico da plataforma,
                     autenticação, segurança e cumprimento das obrigações legais.
@@ -96,7 +98,7 @@ export default function Settings() {
 
               <div className="flex items-start justify-between gap-4 py-2 border-b">
                 <div className="space-y-1">
-                  <Label className="text-base">Análise e Tráfego</Label>
+                  <Label className="text-base">Cookies Analíticos</Label>
                   <p className="text-sm text-muted-foreground">
                     Permitem entender como você interage com a plataforma,
                     garantindo a melhoria contínua da experiência de uso e
@@ -105,13 +107,19 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={consents.analytics}
-                  onCheckedChange={(val) => updateConsents({ analytics: val })}
+                  onCheckedChange={async (val) => {
+                    await updateConsents({ analytics: val })
+                    toast({
+                      title: 'Preferências Atualizadas',
+                      description: `Cookies Analíticos foram ${val ? 'ativados' : 'desativados'}.`,
+                    })
+                  }}
                 />
               </div>
 
               <div className="flex items-start justify-between gap-4 py-2">
                 <div className="space-y-1">
-                  <Label className="text-base">Marketing e Comunicações</Label>
+                  <Label className="text-base">Marketing</Label>
                   <p className="text-sm text-muted-foreground">
                     Usados para o envio de ofertas personalizadas, novidades do
                     mercado imobiliário e comunicação de parceiros autorizados.
@@ -119,7 +127,13 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={consents.marketing}
-                  onCheckedChange={(val) => updateConsents({ marketing: val })}
+                  onCheckedChange={async (val) => {
+                    await updateConsents({ marketing: val })
+                    toast({
+                      title: 'Preferências Atualizadas',
+                      description: `Consentimento para Marketing foi ${val ? 'ativado' : 'desativado'}.`,
+                    })
+                  }}
                 />
               </div>
             </CardContent>

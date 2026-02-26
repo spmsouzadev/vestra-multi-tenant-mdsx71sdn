@@ -22,7 +22,7 @@ export function ConsentBanner() {
               A <strong>VESTRA</strong> utiliza cookies e tecnologias
               semelhantes para garantir a segurança, melhorar a sua experiência,
               analisar o tráfego do site e personalizar conteúdo. Ao clicar em
-              "Aceitar Todos", você concorda com o uso de todos os cookies, em
+              "Aceitar", você concorda com o uso de todos os cookies, em
               conformidade com a LGPD.
             </p>
           </div>
@@ -33,7 +33,7 @@ export function ConsentBanner() {
               className="flex-1 md:flex-none"
               onClick={() => setShowModal(true)}
             >
-              Preferências
+              Configurações
             </Button>
             <Button
               variant="secondary"
@@ -43,7 +43,7 @@ export function ConsentBanner() {
                 updateConsents({ analytics: false, marketing: false })
               }
             >
-              Apenas Essenciais
+              Recusar
             </Button>
             <Button
               size="sm"
@@ -52,7 +52,7 @@ export function ConsentBanner() {
                 updateConsents({ analytics: true, marketing: true })
               }
             >
-              Aceitar Todos
+              Aceitar
             </Button>
           </div>
         </div>

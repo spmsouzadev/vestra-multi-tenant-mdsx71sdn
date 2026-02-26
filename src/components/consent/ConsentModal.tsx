@@ -34,17 +34,17 @@ export function ConsentModal({ open, onOpenChange }: ConsentModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Preferências de Privacidade</DialogTitle>
+          <DialogTitle>Configurações de Privacidade</DialogTitle>
           <DialogDescription>
-            Personalize suas preferências de cookies e uso de dados. As
-            alterações terão efeito imediato.
+            Personalize suas preferências de uso de dados e cookies em
+            conformidade com a LGPD.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <Label className="text-base">Essenciais (Obrigatório)</Label>
+              <Label className="text-base">Termos de Uso</Label>
               <p className="text-sm text-muted-foreground">
                 Necessários para o funcionamento básico da plataforma,
                 segurança, e cumprimento das obrigações legais (LGPD). Não podem
@@ -56,10 +56,10 @@ export function ConsentModal({ open, onOpenChange }: ConsentModalProps) {
 
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <Label className="text-base">Analíticos</Label>
+              <Label className="text-base">Cookies Analíticos</Label>
               <p className="text-sm text-muted-foreground">
                 Permitem entender como você interage com o site, medir o tráfego
-                e melhorar a experiência (ex: Google Analytics).
+                e melhorar a experiência.
               </p>
             </div>
             <Switch
@@ -72,10 +72,10 @@ export function ConsentModal({ open, onOpenChange }: ConsentModalProps) {
 
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <Label className="text-base">Marketing e Comunicações</Label>
+              <Label className="text-base">Marketing</Label>
               <p className="text-sm text-muted-foreground">
-                Usados para rastrear a eficácia de campanhas publicitárias e
-                enviar ofertas e comunicações relevantes ao seu perfil.
+                Usados para rastrear a eficácia de campanhas e enviar ofertas
+                relevantes ao seu perfil.
               </p>
             </div>
             <Switch
@@ -91,7 +91,7 @@ export function ConsentModal({ open, onOpenChange }: ConsentModalProps) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave}>Salvar Preferências</Button>
+          <Button onClick={handleSave}>Salvar Configurações</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

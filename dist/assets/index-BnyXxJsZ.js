@@ -33957,27 +33957,20 @@ const supabase = createClient("https://rkznghwrnykdzjsxnrjn.supabase.co", "eyJhb
 } });
 const consentService = {
 	async getUserConsents(userId) {
-		const { data, error } = await supabase.from("user_consents").select("consent_type, is_granted").eq("user_id", userId);
+		const { data, error } = await supabase.from("user_consents").select("consent_type, is_accepted").eq("user_id", userId);
 		if (error) throw error;
 		return data;
 	},
-	async upsertConsent(userId, consentType, isGranted) {
-		const { data: existing, error: fetchError } = await supabase.from("user_consents").select("id").eq("user_id", userId).eq("consent_type", consentType).single();
-		if (fetchError && fetchError.code !== "PGRST116") throw fetchError;
+	async upsertConsent(userId, consentType, isAccepted) {
 		const payload = {
 			user_id: userId,
 			consent_type: consentType,
-			is_granted: isGranted,
+			is_accepted: isAccepted,
 			user_agent: navigator.userAgent,
 			updated_at: (/* @__PURE__ */ new Date()).toISOString()
 		};
-		if (existing) {
-			const { error } = await supabase.from("user_consents").update(payload).eq("id", existing.id);
-			if (error) throw error;
-		} else {
-			const { error } = await supabase.from("user_consents").insert(payload);
-			if (error) throw error;
-		}
+		const { error } = await supabase.from("user_consents").upsert(payload, { onConflict: "user_id,consent_type" });
+		if (error) throw error;
 	}
 };
 var AppContext = (0, import_react.createContext)(void 0);
@@ -33987,7 +33980,7 @@ var getInitialConsents = () => {
 		if (saved) return JSON.parse(saved);
 	} catch (e) {}
 	return {
-		essential: true,
+		termsOfUse: true,
 		analytics: false,
 		marketing: false
 	};
@@ -34013,14 +34006,18 @@ const AppProvider = ({ children }) => {
 		const updated = {
 			...consents,
 			...newConsents,
-			essential: true
+			termsOfUse: true
 		};
 		setConsents(updated);
 		setConsentResolved(true);
 		localStorage.setItem("vestra_consents", JSON.stringify(updated));
 		localStorage.setItem("vestra_consent_resolved", "true");
 		if (user) try {
-			await Promise.all([consentService.upsertConsent(user.id, "analytics", updated.analytics), consentService.upsertConsent(user.id, "marketing", updated.marketing)]);
+			await Promise.all([
+				consentService.upsertConsent(user.id, "Termos de Uso", updated.termsOfUse),
+				consentService.upsertConsent(user.id, "Cookies Analíticos", updated.analytics),
+				consentService.upsertConsent(user.id, "Marketing", updated.marketing)
+			]);
 			addAuditLog({
 				id: Math.random().toString(),
 				userId: user.id,
@@ -34055,14 +34052,19 @@ const AppProvider = ({ children }) => {
 				if (dbConsents && dbConsents.length > 0) {
 					const merged = { ...consents };
 					dbConsents.forEach((c$1) => {
-						if (c$1.consent_type === "analytics") merged.analytics = c$1.is_granted;
-						if (c$1.consent_type === "marketing") merged.marketing = c$1.is_granted;
+						if (c$1.consent_type === "Cookies Analíticos") merged.analytics = c$1.is_accepted;
+						if (c$1.consent_type === "Marketing") merged.marketing = c$1.is_accepted;
+						if (c$1.consent_type === "Termos de Uso") merged.termsOfUse = c$1.is_accepted;
 					});
 					setConsents(merged);
 					setConsentResolved(true);
 					localStorage.setItem("vestra_consents", JSON.stringify(merged));
 					localStorage.setItem("vestra_consent_resolved", "true");
-				} else if (consentResolved) await Promise.all([consentService.upsertConsent(foundUser.id, "analytics", consents.analytics), consentService.upsertConsent(foundUser.id, "marketing", consents.marketing)]);
+				} else if (consentResolved) await Promise.all([
+					consentService.upsertConsent(foundUser.id, "Termos de Uso", consents.termsOfUse),
+					consentService.upsertConsent(foundUser.id, "Cookies Analíticos", consents.analytics),
+					consentService.upsertConsent(foundUser.id, "Marketing", consents.marketing)
+				]);
 			} catch (e) {
 				console.error("Error syncing user consents", e);
 			}
@@ -35872,7 +35874,7 @@ function ConsentModal({ open, onOpenChange }) {
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
 			className: "sm:max-w-[425px]",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Preferências de Privacidade" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Personalize suas preferências de cookies e uso de dados. As alterações terão efeito imediato." })] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Configurações de Privacidade" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Personalize suas preferências de uso de dados e cookies em conformidade com a LGPD." })] }),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "space-y-6 py-4",
 					children: [
@@ -35882,7 +35884,7 @@ function ConsentModal({ open, onOpenChange }) {
 								className: "space-y-1",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 									className: "text-base",
-									children: "Essenciais (Obrigatório)"
+									children: "Termos de Uso"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-muted-foreground",
 									children: "Necessários para o funcionamento básico da plataforma, segurança, e cumprimento das obrigações legais (LGPD). Não podem ser desativados."
@@ -35898,10 +35900,10 @@ function ConsentModal({ open, onOpenChange }) {
 								className: "space-y-1",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 									className: "text-base",
-									children: "Analíticos"
+									children: "Cookies Analíticos"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-muted-foreground",
-									children: "Permitem entender como você interage com o site, medir o tráfego e melhorar a experiência (ex: Google Analytics)."
+									children: "Permitem entender como você interage com o site, medir o tráfego e melhorar a experiência."
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
 								checked: localConsents.analytics,
@@ -35917,10 +35919,10 @@ function ConsentModal({ open, onOpenChange }) {
 								className: "space-y-1",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 									className: "text-base",
-									children: "Marketing e Comunicações"
+									children: "Marketing"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-muted-foreground",
-									children: "Usados para rastrear a eficácia de campanhas publicitárias e enviar ofertas e comunicações relevantes ao seu perfil."
+									children: "Usados para rastrear a eficácia de campanhas e enviar ofertas relevantes ao seu perfil."
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
 								checked: localConsents.marketing,
@@ -35940,7 +35942,7 @@ function ConsentModal({ open, onOpenChange }) {
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						onClick: handleSave,
-						children: "Salvar Preferências"
+						children: "Salvar Configurações"
 					})]
 				})
 			]
@@ -35965,7 +35967,7 @@ function ConsentBanner() {
 					children: [
 						"A ",
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "VESTRA" }),
-						" utiliza cookies e tecnologias semelhantes para garantir a segurança, melhorar a sua experiência, analisar o tráfego do site e personalizar conteúdo. Ao clicar em \"Aceitar Todos\", você concorda com o uso de todos os cookies, em conformidade com a LGPD."
+						" utiliza cookies e tecnologias semelhantes para garantir a segurança, melhorar a sua experiência, analisar o tráfego do site e personalizar conteúdo. Ao clicar em \"Aceitar\", você concorda com o uso de todos os cookies, em conformidade com a LGPD."
 					]
 				})]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -35976,7 +35978,7 @@ function ConsentBanner() {
 						size: "sm",
 						className: "flex-1 md:flex-none",
 						onClick: () => setShowModal(true),
-						children: "Preferências"
+						children: "Configurações"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						variant: "secondary",
@@ -35986,7 +35988,7 @@ function ConsentBanner() {
 							analytics: false,
 							marketing: false
 						}),
-						children: "Apenas Essenciais"
+						children: "Recusar"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						size: "sm",
@@ -35995,7 +35997,7 @@ function ConsentBanner() {
 							analytics: true,
 							marketing: true
 						}),
-						children: "Aceitar Todos"
+						children: "Aceitar"
 					})
 				]
 			})]
@@ -75015,6 +75017,7 @@ function WarrantyCategoriesSettings() {
 }
 function Settings() {
 	const { user, consents, updateConsents } = useAppStore();
+	const { toast: toast$2 } = useToast();
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, { to: "/login" });
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-6",
@@ -75039,7 +75042,7 @@ function Settings() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsTrigger, {
 							value: "privacy",
 							className: "gap-2 py-2 shrink-0",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, { className: "h-4 w-4" }), " Privacidade (LGPD)"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, { className: "h-4 w-4" }), " Privacidade e Consentimento"]
 						}),
 						(user.role === "ADMIN" || user.role === "MASTER") && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsTrigger, {
 							value: "company",
@@ -75080,7 +75083,7 @@ function Settings() {
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 					value: "privacy",
 					className: "animate-fade-in",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Privacidade e Consentimentos" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Gerencie como a VESTRA e nossos parceiros processam seus dados, em conformidade com a Lei Geral de Proteção de Dados (LGPD)." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Privacidade e Consentimento" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Gerencie como a VESTRA e nossos parceiros processam seus dados, em conformidade com a Lei Geral de Proteção de Dados (LGPD)." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						className: "space-y-6",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -75089,7 +75092,7 @@ function Settings() {
 									className: "space-y-1",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 										className: "text-base",
-										children: "Essenciais (Obrigatório)"
+										children: "Termos de Uso"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										className: "text-sm text-muted-foreground",
 										children: "Necessários para o funcionamento básico da plataforma, autenticação, segurança e cumprimento das obrigações legais. Não podem ser desativados."
@@ -75105,14 +75108,20 @@ function Settings() {
 									className: "space-y-1",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 										className: "text-base",
-										children: "Análise e Tráfego"
+										children: "Cookies Analíticos"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										className: "text-sm text-muted-foreground",
 										children: "Permitem entender como você interage com a plataforma, garantindo a melhoria contínua da experiência de uso e estabilidade do sistema."
 									})]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
 									checked: consents.analytics,
-									onCheckedChange: (val) => updateConsents({ analytics: val })
+									onCheckedChange: async (val) => {
+										await updateConsents({ analytics: val });
+										toast$2({
+											title: "Preferências Atualizadas",
+											description: `Cookies Analíticos foram ${val ? "ativados" : "desativados"}.`
+										});
+									}
 								})]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -75121,14 +75130,20 @@ function Settings() {
 									className: "space-y-1",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 										className: "text-base",
-										children: "Marketing e Comunicações"
+										children: "Marketing"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										className: "text-sm text-muted-foreground",
 										children: "Usados para o envio de ofertas personalizadas, novidades do mercado imobiliário e comunicação de parceiros autorizados."
 									})]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
 									checked: consents.marketing,
-									onCheckedChange: (val) => updateConsents({ marketing: val })
+									onCheckedChange: async (val) => {
+										await updateConsents({ marketing: val });
+										toast$2({
+											title: "Preferências Atualizadas",
+											description: `Consentimento para Marketing foi ${val ? "ativado" : "desativado"}.`
+										});
+									}
 								})]
 							})
 						]
@@ -75267,4 +75282,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { child
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-DHm9tlvd.js.map
+//# sourceMappingURL=index-BnyXxJsZ.js.map

@@ -25,7 +25,7 @@ import {
 import { consentService } from '@/services/consentService'
 
 export interface Consents {
-  essential: boolean
+  termsOfUse: boolean
   analytics: boolean
   marketing: boolean
 }
@@ -78,7 +78,7 @@ const getInitialConsents = (): Consents => {
   } catch (e) {
     // Ignore parse errors
   }
-  return { essential: true, analytics: false, marketing: false }
+  return { termsOfUse: true, analytics: false, marketing: false }
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -104,7 +104,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const updateConsents = async (newConsents: Partial<Consents>) => {
-    const updated = { ...consents, ...newConsents, essential: true } // essential is always true
+    const updated = { ...consents, ...newConsents, termsOfUse: true } // termsOfUse is always true
     setConsents(updated)
     setConsentResolved(true)
 
@@ -114,8 +114,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       try {
         await Promise.all([
-          consentService.upsertConsent(user.id, 'analytics', updated.analytics),
-          consentService.upsertConsent(user.id, 'marketing', updated.marketing),
+          consentService.upsertConsent(
+            user.id,
+            'Termos de Uso',
+            updated.termsOfUse,
+          ),
+          consentService.upsertConsent(
+            user.id,
+            'Cookies Analíticos',
+            updated.analytics,
+          ),
+          consentService.upsertConsent(user.id, 'Marketing', updated.marketing),
         ])
         addAuditLog({
           id: Math.random().toString(),
@@ -129,8 +138,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         })
       } catch (e) {
         console.error('Failed to sync consents to DB (Expected in Mock)', e)
-        // Note: In local mock mode with real Supabase connection, this might fail due to FK constraints.
-        // We catch it so it doesn't break the UI.
       }
     }
   }
@@ -159,8 +166,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           // Merge DB consents into local state
           const merged = { ...consents }
           dbConsents.forEach((c) => {
-            if (c.consent_type === 'analytics') merged.analytics = c.is_granted
-            if (c.consent_type === 'marketing') merged.marketing = c.is_granted
+            if (c.consent_type === 'Cookies Analíticos')
+              merged.analytics = c.is_accepted
+            if (c.consent_type === 'Marketing') merged.marketing = c.is_accepted
+            if (c.consent_type === 'Termos de Uso')
+              merged.termsOfUse = c.is_accepted
           })
           setConsents(merged)
           setConsentResolved(true)
@@ -171,12 +181,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           await Promise.all([
             consentService.upsertConsent(
               foundUser.id,
-              'analytics',
+              'Termos de Uso',
+              consents.termsOfUse,
+            ),
+            consentService.upsertConsent(
+              foundUser.id,
+              'Cookies Analíticos',
               consents.analytics,
             ),
             consentService.upsertConsent(
               foundUser.id,
-              'marketing',
+              'Marketing',
               consents.marketing,
             ),
           ])
