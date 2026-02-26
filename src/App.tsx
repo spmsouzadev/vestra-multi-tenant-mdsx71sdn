@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppProvider } from '@/stores/useAppStore'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import { ConsentBanner } from '@/components/consent/ConsentBanner'
 
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
@@ -58,6 +59,7 @@ const App = () => (
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ConsentBanner />
       </TooltipProvider>
     </BrowserRouter>
   </AppProvider>

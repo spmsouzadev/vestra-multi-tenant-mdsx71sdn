@@ -22,6 +22,13 @@ import {
   mockDocuments,
   mockDocumentLogs,
 } from '@/data/mockData'
+import { consentService } from '@/services/consentService'
+
+export interface Consents {
+  essential: boolean
+  analytics: boolean
+  marketing: boolean
+}
 
 interface AppState {
   user: User | null
@@ -33,6 +40,11 @@ interface AppState {
   leads: Lead[]
   documents: ProjectDocument[]
   documentLogs: DocumentLog[]
+  // Consent State
+  consents: Consents
+  consentResolved: boolean
+  updateConsents: (newConsents: Partial<Consents>) => Promise<void>
+  // Methods
   login: (email: string, password?: string) => Promise<boolean>
   logout: () => void
   addTenant: (tenant: Tenant) => void
@@ -52,13 +64,22 @@ interface AppState {
   addLead: (lead: Lead) => void
   updateLeadStatus: (id: string, status: LeadStatus) => void
   approveLead: (id: string) => void
-  // Document Management
   addDocument: (doc: ProjectDocument) => void
   updateDocumentVisibility: (id: string, isVisible: boolean) => void
   logDocumentAction: (log: DocumentLog) => void
 }
 
 const AppContext = createContext<AppState | undefined>(undefined)
+
+const getInitialConsents = (): Consents => {
+  try {
+    const saved = localStorage.getItem('vestra_consents')
+    if (saved) return JSON.parse(saved)
+  } catch (e) {
+    // Ignore parse errors
+  }
+  return { essential: true, analytics: false, marketing: false }
+}
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -72,18 +93,52 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [documentLogs, setDocumentLogs] =
     useState<DocumentLog[]>(mockDocumentLogs)
 
+  // Consent State Initialization
+  const [consents, setConsents] = useState<Consents>(getInitialConsents)
+  const [consentResolved, setConsentResolved] = useState<boolean>(() => {
+    return localStorage.getItem('vestra_consent_resolved') === 'true'
+  })
+
   const addAuditLog = (log: AuditLog) => {
     setAuditLogs((prev) => [log, ...prev])
   }
 
-  const login = async (email: string, password?: string): Promise<boolean> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  const updateConsents = async (newConsents: Partial<Consents>) => {
+    const updated = { ...consents, ...newConsents, essential: true } // essential is always true
+    setConsents(updated)
+    setConsentResolved(true)
 
+    localStorage.setItem('vestra_consents', JSON.stringify(updated))
+    localStorage.setItem('vestra_consent_resolved', 'true')
+
+    if (user) {
+      try {
+        await Promise.all([
+          consentService.upsertConsent(user.id, 'analytics', updated.analytics),
+          consentService.upsertConsent(user.id, 'marketing', updated.marketing),
+        ])
+        addAuditLog({
+          id: Math.random().toString(),
+          userId: user.id,
+          userName: user.name,
+          action: 'CONSENT_UPDATE',
+          entityType: 'USER',
+          entityId: user.id,
+          details: `Consents updated: Analytics=${updated.analytics}, Marketing=${updated.marketing}`,
+          timestamp: new Date().toISOString(),
+        })
+      } catch (e) {
+        console.error('Failed to sync consents to DB (Expected in Mock)', e)
+        // Note: In local mock mode with real Supabase connection, this might fail due to FK constraints.
+        // We catch it so it doesn't break the UI.
+      }
+    }
+  }
+
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     const foundUser = mockUsers.find((u) => u.email === email)
 
-    // In a real app, we would check password here.
-    // For this mock, we accept any password if user exists.
     if (foundUser) {
       setUser(foundUser)
       addAuditLog({
@@ -96,6 +151,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         details: 'User logged in successfully',
         timestamp: new Date().toISOString(),
       })
+
+      // Sync Consents logic on login
+      try {
+        const dbConsents = await consentService.getUserConsents(foundUser.id)
+        if (dbConsents && dbConsents.length > 0) {
+          // Merge DB consents into local state
+          const merged = { ...consents }
+          dbConsents.forEach((c) => {
+            if (c.consent_type === 'analytics') merged.analytics = c.is_granted
+            if (c.consent_type === 'marketing') merged.marketing = c.is_granted
+          })
+          setConsents(merged)
+          setConsentResolved(true)
+          localStorage.setItem('vestra_consents', JSON.stringify(merged))
+          localStorage.setItem('vestra_consent_resolved', 'true')
+        } else if (consentResolved) {
+          // Push local resolved consents to DB if missing
+          await Promise.all([
+            consentService.upsertConsent(
+              foundUser.id,
+              'analytics',
+              consents.analytics,
+            ),
+            consentService.upsertConsent(
+              foundUser.id,
+              'marketing',
+              consents.marketing,
+            ),
+          ])
+        }
+      } catch (e) {
+        console.error('Error syncing user consents', e)
+      }
+
       return true
     } else {
       addAuditLog({
@@ -255,9 +344,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const approveLead = (id: string) => {
     const lead = leads.find((l) => l.id === id)
-    if (!lead) return
-
-    if (lead.status === 'APPROVED') return
+    if (!lead || lead.status === 'APPROVED') return
 
     const newTenant: Tenant = {
       id: Math.random().toString(),
@@ -279,7 +366,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (user.role === 'MASTER') return projects
     if (user.role === 'ADMIN')
       return projects.filter((p) => p.tenantId === user.tenantId)
-    return projects // For owners, usually we filter by ownership but keeping this simple
+    return projects
   }
 
   const getFilteredUnits = () => {
@@ -288,7 +375,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return units.filter((u) => visibleProjects.includes(u.projectId))
   }
 
-  // Document Management Methods
   const addDocument = (doc: ProjectDocument) => {
     setDocuments((prev) => [doc, ...prev])
     logDocumentAction({
@@ -335,6 +421,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         leads,
         documents,
         documentLogs,
+        consents,
+        consentResolved,
+        updateConsents,
         login,
         logout,
         addTenant,

@@ -8,11 +8,13 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WarrantyCategoriesSettings } from '@/components/settings/WarrantyCategoriesSettings'
-import { Building, User, Shield } from 'lucide-react'
+import { Building, User, Shield, ShieldCheck } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 
 export default function Settings() {
-  const { user } = useAppStore()
+  const { user, consents, updateConsents } = useAppStore()
 
   if (!user) return <Navigate to="/login" />
 
@@ -21,28 +23,31 @@ export default function Settings() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Configurações</h1>
         <p className="text-muted-foreground">
-          Gerencie sua conta e preferências da empresa.
+          Gerencie sua conta, preferências de privacidade e da empresa.
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="profile" className="gap-2">
+        <TabsList className="overflow-x-auto flex-nowrap justify-start w-full sm:w-auto h-auto p-1">
+          <TabsTrigger value="profile" className="gap-2 py-2 shrink-0">
             <User className="h-4 w-4" /> Perfil
           </TabsTrigger>
+          <TabsTrigger value="privacy" className="gap-2 py-2 shrink-0">
+            <ShieldCheck className="h-4 w-4" /> Privacidade (LGPD)
+          </TabsTrigger>
           {(user.role === 'ADMIN' || user.role === 'MASTER') && (
-            <TabsTrigger value="company" className="gap-2">
+            <TabsTrigger value="company" className="gap-2 py-2 shrink-0">
               <Building className="h-4 w-4" /> Empresa
             </TabsTrigger>
           )}
           {(user.role === 'ADMIN' || user.role === 'MASTER') && (
-            <TabsTrigger value="warranties" className="gap-2">
+            <TabsTrigger value="warranties" className="gap-2 py-2 shrink-0">
               <Shield className="h-4 w-4" /> Garantias (NBR 15575)
             </TabsTrigger>
           )}
         </TabsList>
 
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="animate-fade-in">
           <Card>
             <CardHeader>
               <CardTitle>Perfil do Usuário</CardTitle>
@@ -67,7 +72,61 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="company">
+        <TabsContent value="privacy" className="animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacidade e Consentimentos</CardTitle>
+              <CardDescription>
+                Gerencie como a VESTRA e nossos parceiros processam seus dados,
+                em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-start justify-between gap-4 py-2 border-b">
+                <div className="space-y-1">
+                  <Label className="text-base">Essenciais (Obrigatório)</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Necessários para o funcionamento básico da plataforma,
+                    autenticação, segurança e cumprimento das obrigações legais.
+                    Não podem ser desativados.
+                  </p>
+                </div>
+                <Switch checked disabled />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 py-2 border-b">
+                <div className="space-y-1">
+                  <Label className="text-base">Análise e Tráfego</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Permitem entender como você interage com a plataforma,
+                    garantindo a melhoria contínua da experiência de uso e
+                    estabilidade do sistema.
+                  </p>
+                </div>
+                <Switch
+                  checked={consents.analytics}
+                  onCheckedChange={(val) => updateConsents({ analytics: val })}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 py-2">
+                <div className="space-y-1">
+                  <Label className="text-base">Marketing e Comunicações</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Usados para o envio de ofertas personalizadas, novidades do
+                    mercado imobiliário e comunicação de parceiros autorizados.
+                  </p>
+                </div>
+                <Switch
+                  checked={consents.marketing}
+                  onCheckedChange={(val) => updateConsents({ marketing: val })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="company" className="animate-fade-in">
           <Card>
             <CardHeader>
               <CardTitle>Dados da Empresa</CardTitle>
@@ -81,7 +140,7 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="warranties">
+        <TabsContent value="warranties" className="animate-fade-in">
           <Card>
             <CardHeader>
               <CardTitle>Configuração de Garantias</CardTitle>

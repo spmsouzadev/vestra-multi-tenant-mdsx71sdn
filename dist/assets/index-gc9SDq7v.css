@@ -1358,6 +1358,9 @@ section[aria-label='Notifications alt+T'] {
 .flex-wrap{
   flex-wrap: wrap;
 }
+.flex-nowrap{
+  flex-wrap: nowrap;
+}
 .items-start{
   align-items: flex-start;
 }
@@ -1480,6 +1483,9 @@ section[aria-label='Notifications alt+T'] {
 }
 .overflow-hidden{
   overflow: hidden;
+}
+.overflow-x-auto{
+  overflow-x: auto;
 }
 .overflow-y-auto{
   overflow-y: auto;
@@ -2163,6 +2169,9 @@ section[aria-label='Notifications alt+T'] {
 .leading-none{
   line-height: 1;
 }
+.leading-relaxed{
+  line-height: 1.625;
+}
 .tracking-tight{
   letter-spacing: -0.025em;
 }
@@ -2387,6 +2396,11 @@ section[aria-label='Notifications alt+T'] {
 .shadow-2xl{
   --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.shadow-\[0_-10px_40px_-15px_rgba\(0\2c 0\2c 0\2c 0\.1\)\]{
+  --tw-shadow: 0 -10px 40px -15px rgba(0,0,0,0.1);
+  --tw-shadow-colored: 0 -10px 40px -15px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 .shadow-\[0_0_0_1px_hsl\(var\(--sidebar-border\)\)\]{
@@ -2742,6 +2756,9 @@ section[aria-label='Notifications alt+T'] {
   }
 .animate-fade-in-down {
     animation: fade-in-down 0.6s ease-out;
+  }
+.animate-slide-up {
+    animation: slide-up 0.6s ease-out;
   }
 .\[--cell-size\:2rem\]{
   --cell-size: 2rem;
@@ -3730,6 +3747,9 @@ section[aria-label='Notifications alt+T'] {
   .sm\:justify-end{
     justify-content: flex-end;
   }
+  .sm\:gap-0{
+    gap: 0px;
+  }
   .sm\:gap-2\.5{
     gap: 0.625rem;
   }
@@ -3784,6 +3804,9 @@ section[aria-label='Notifications alt+T'] {
   }
   .md\:max-w-\[420px\]{
     max-width: 420px;
+  }
+  .md\:flex-none{
+    flex: none;
   }
   .md\:grid-cols-2{
     grid-template-columns: repeat(2, minmax(0, 1fr));

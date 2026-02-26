@@ -1,19 +1,31 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import useAppStore from '@/stores/useAppStore'
 
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void
     dataLayer?: any[]
+    [key: string]: any // To allow dynamic properties like ga-disable-ID
   }
 }
 
 export function GoogleAnalytics() {
   const location = useLocation()
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID
+  const { consents } = useAppStore()
 
   useEffect(() => {
     if (!measurementId) return
+
+    // If analytics consent is rejected, disable GA explicitly
+    if (!consents.analytics) {
+      window[`ga-disable-${measurementId}`] = true
+      return
+    }
+
+    // Enable GA if previously disabled
+    window[`ga-disable-${measurementId}`] = false
 
     if (!document.getElementById('ga-script')) {
       const script1 = document.createElement('script')
@@ -33,13 +45,13 @@ export function GoogleAnalytics() {
       `
       document.head.appendChild(script2)
     }
-  }, [measurementId])
+  }, [measurementId, consents.analytics])
 
   useEffect(() => {
-    if (!measurementId) return
+    if (!measurementId || !consents.analytics) return
 
     const handlePageView = () => {
-      if (window.gtag) {
+      if (window.gtag && !window[`ga-disable-${measurementId}`]) {
         window.gtag('event', 'page_view', {
           page_path: location.pathname + location.search,
           page_location: window.location.href,
@@ -52,7 +64,7 @@ export function GoogleAnalytics() {
     const timeoutId = setTimeout(handlePageView, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [location, measurementId])
+  }, [location, measurementId, consents.analytics])
 
   return null
 }
