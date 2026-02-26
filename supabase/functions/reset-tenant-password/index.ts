@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
           autoRefreshToken: false,
           persistSession: false,
         },
-      },
+      }
     )
 
     const { email, redirectTo } = await req.json()
@@ -36,12 +36,9 @@ Deno.serve(async (req) => {
       status: 200,
     })
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, message: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      },
-    )
+    return new Response(JSON.stringify({ success: false, message: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })
