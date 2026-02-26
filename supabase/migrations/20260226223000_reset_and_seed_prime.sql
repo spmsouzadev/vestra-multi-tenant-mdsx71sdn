@@ -55,7 +55,6 @@ BEGIN
   DELETE FROM public.projects;
   DELETE FROM public.owners;
   DELETE FROM public.billing_history;
-  DELETE FROM public.leads;
   DELETE FROM public.audit_logs;
   DELETE FROM public.tenants;
   
