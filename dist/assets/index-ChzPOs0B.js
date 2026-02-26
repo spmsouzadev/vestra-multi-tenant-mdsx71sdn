@@ -34050,6 +34050,75 @@ const AppProvider = ({ children }) => {
 				role: authUser.user_metadata?.role || "MASTER",
 				tenantId: authUser.user_metadata?.tenantId || "sys"
 			});
+			supabase.from("tenants").select("*").then(({ data, error }) => {
+				if (!error && data) {
+					const dbTenants = data.map((t$1) => ({
+						id: t$1.id,
+						name: t$1.name,
+						cnpj: t$1.cnpj,
+						status: t$1.status,
+						createdAt: t$1.created_at || (/* @__PURE__ */ new Date()).toISOString(),
+						projectCount: 0,
+						logoUrl: t$1.logo_url || `https://img.usecurling.com/i?q=building&color=black`,
+						primaryColor: t$1.primary_color || "#000000"
+					}));
+					setTenants((prev) => {
+						const prevIds = new Set(dbTenants.map((d) => d.id));
+						const prevClean = prev.filter((p) => !prevIds.has(p.id));
+						return [...dbTenants, ...prevClean];
+					});
+				}
+			});
+			supabase.from("projects").select("*").then(({ data, error }) => {
+				if (!error && data) {
+					const dbProjects = data.map((p) => ({
+						id: p.id,
+						tenantId: p.tenant_id || "",
+						name: p.name,
+						city: p.city,
+						state: p.state,
+						manager: p.manager,
+						address: p.address || "",
+						totalUnits: p.total_units || 0,
+						deliveredUnits: p.delivered_units || 0,
+						openIssues: p.open_issues || 0,
+						completionPercentage: p.completion_percentage || 0,
+						deliveryDate: p.delivery_date || (/* @__PURE__ */ new Date()).toISOString(),
+						status: p.status,
+						phase: p.phase,
+						imageUrl: p.image_url || ""
+					}));
+					setProjects((prev) => {
+						const prevIds = new Set(dbProjects.map((d) => d.id));
+						const prevClean = prev.filter((p) => !prevIds.has(p.id));
+						return [...dbProjects, ...prevClean];
+					});
+				}
+			});
+			supabase.from("units").select("*").then(({ data, error }) => {
+				if (!error && data) {
+					const dbUnits = data.map((u) => ({
+						id: u.id,
+						projectId: u.project_id || "",
+						block: u.block || "",
+						number: u.number,
+						floor: u.floor || "",
+						bedrooms: u.bedrooms || 0,
+						bathrooms: u.bathrooms || 0,
+						typology: u.typology || "",
+						area: u.area || 0,
+						price: u.price || 0,
+						status: u.status,
+						ownerId: u.owner_id,
+						createdAt: u.created_at || (/* @__PURE__ */ new Date()).toISOString()
+					}));
+					setUnits((prev) => {
+						const prevIds = new Set(dbUnits.map((d) => d.id));
+						const prevClean = prev.filter((p) => !prevIds.has(p.id));
+						return [...dbUnits, ...prevClean];
+					});
+				}
+			});
 			consentService.getUserConsents(authUser.id).then((dbConsents) => {
 				if (dbConsents && dbConsents.length > 0) {
 					const merged = { ...consents };
@@ -75348,4 +75417,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, { chil
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CSUSx6P6.js.map
+//# sourceMappingURL=index-ChzPOs0B.js.map
