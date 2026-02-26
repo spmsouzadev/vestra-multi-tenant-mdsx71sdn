@@ -24401,1899 +24401,6 @@ var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...pr
 	...props
 }));
 TooltipContent.displayName = Content2$5.displayName;
-const daysInYear = 365.2425;
-Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
-const millisecondsInWeek = 6048e5;
-const millisecondsInDay = 864e5;
-const millisecondsInMinute = 6e4;
-const millisecondsInHour = 36e5;
-const minutesInMonth = 43200;
-const minutesInDay = 1440;
-const secondsInDay = 3600 * 24;
-secondsInDay * 7;
-secondsInDay * daysInYear / 12 * 3;
-const constructFromSymbol = Symbol.for("constructDateFrom");
-function constructFrom(date$3, value) {
-	if (typeof date$3 === "function") return date$3(value);
-	if (date$3 && typeof date$3 === "object" && constructFromSymbol in date$3) return date$3[constructFromSymbol](value);
-	if (date$3 instanceof Date) return new date$3.constructor(value);
-	return new Date(value);
-}
-function toDate(argument, context) {
-	return constructFrom(context || argument, argument);
-}
-function addDays(date$3, amount, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	if (isNaN(amount)) return constructFrom(options$1?.in || date$3, NaN);
-	if (!amount) return _date;
-	_date.setDate(_date.getDate() + amount);
-	return _date;
-}
-function addMonths(date$3, amount, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	if (isNaN(amount)) return constructFrom(options$1?.in || date$3, NaN);
-	if (!amount) return _date;
-	const dayOfMonth = _date.getDate();
-	const endOfDesiredMonth = constructFrom(options$1?.in || date$3, _date.getTime());
-	endOfDesiredMonth.setMonth(_date.getMonth() + amount + 1, 0);
-	if (dayOfMonth >= endOfDesiredMonth.getDate()) return endOfDesiredMonth;
-	else {
-		_date.setFullYear(endOfDesiredMonth.getFullYear(), endOfDesiredMonth.getMonth(), dayOfMonth);
-		return _date;
-	}
-}
-var defaultOptions$1 = {};
-function getDefaultOptions() {
-	return defaultOptions$1;
-}
-function startOfWeek(date$3, options$1) {
-	const defaultOptions$2 = getDefaultOptions();
-	const weekStartsOn = options$1?.weekStartsOn ?? options$1?.locale?.options?.weekStartsOn ?? defaultOptions$2.weekStartsOn ?? defaultOptions$2.locale?.options?.weekStartsOn ?? 0;
-	const _date = toDate(date$3, options$1?.in);
-	const day = _date.getDay();
-	const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
-	_date.setDate(_date.getDate() - diff);
-	_date.setHours(0, 0, 0, 0);
-	return _date;
-}
-function startOfISOWeek(date$3, options$1) {
-	return startOfWeek(date$3, {
-		...options$1,
-		weekStartsOn: 1
-	});
-}
-function getISOWeekYear(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	const year = _date.getFullYear();
-	const fourthOfJanuaryOfNextYear = constructFrom(_date, 0);
-	fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
-	fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
-	const startOfNextYear = startOfISOWeek(fourthOfJanuaryOfNextYear);
-	const fourthOfJanuaryOfThisYear = constructFrom(_date, 0);
-	fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
-	fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
-	const startOfThisYear = startOfISOWeek(fourthOfJanuaryOfThisYear);
-	if (_date.getTime() >= startOfNextYear.getTime()) return year + 1;
-	else if (_date.getTime() >= startOfThisYear.getTime()) return year;
-	else return year - 1;
-}
-function getTimezoneOffsetInMilliseconds(date$3) {
-	const _date = toDate(date$3);
-	const utcDate$1 = new Date(Date.UTC(_date.getFullYear(), _date.getMonth(), _date.getDate(), _date.getHours(), _date.getMinutes(), _date.getSeconds(), _date.getMilliseconds()));
-	utcDate$1.setUTCFullYear(_date.getFullYear());
-	return +date$3 - +utcDate$1;
-}
-function normalizeDates(context, ...dates) {
-	const normalize$1 = constructFrom.bind(null, context || dates.find((date$3) => typeof date$3 === "object"));
-	return dates.map(normalize$1);
-}
-function startOfDay(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	_date.setHours(0, 0, 0, 0);
-	return _date;
-}
-function differenceInCalendarDays(laterDate, earlierDate, options$1) {
-	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
-	const laterStartOfDay = startOfDay(laterDate_);
-	const earlierStartOfDay = startOfDay(earlierDate_);
-	const laterTimestamp = +laterStartOfDay - getTimezoneOffsetInMilliseconds(laterStartOfDay);
-	const earlierTimestamp = +earlierStartOfDay - getTimezoneOffsetInMilliseconds(earlierStartOfDay);
-	return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
-}
-function startOfISOWeekYear(date$3, options$1) {
-	const year = getISOWeekYear(date$3, options$1);
-	const fourthOfJanuary = constructFrom(options$1?.in || date$3, 0);
-	fourthOfJanuary.setFullYear(year, 0, 4);
-	fourthOfJanuary.setHours(0, 0, 0, 0);
-	return startOfISOWeek(fourthOfJanuary);
-}
-function compareAsc(dateLeft, dateRight) {
-	const diff = +toDate(dateLeft) - +toDate(dateRight);
-	if (diff < 0) return -1;
-	else if (diff > 0) return 1;
-	return diff;
-}
-function constructNow(date$3) {
-	return constructFrom(date$3, Date.now());
-}
-function isDate(value) {
-	return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
-}
-function isValid(date$3) {
-	return !(!isDate(date$3) && typeof date$3 !== "number" || isNaN(+toDate(date$3)));
-}
-function differenceInCalendarMonths(laterDate, earlierDate, options$1) {
-	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
-	const yearsDiff = laterDate_.getFullYear() - earlierDate_.getFullYear();
-	const monthsDiff = laterDate_.getMonth() - earlierDate_.getMonth();
-	return yearsDiff * 12 + monthsDiff;
-}
-function differenceInDays(laterDate, earlierDate, options$1) {
-	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
-	const sign$1 = compareLocalAsc(laterDate_, earlierDate_);
-	const difference = Math.abs(differenceInCalendarDays(laterDate_, earlierDate_));
-	laterDate_.setDate(laterDate_.getDate() - sign$1 * difference);
-	const result = sign$1 * (difference - Number(compareLocalAsc(laterDate_, earlierDate_) === -sign$1));
-	return result === 0 ? 0 : result;
-}
-function compareLocalAsc(laterDate, earlierDate) {
-	const diff = laterDate.getFullYear() - earlierDate.getFullYear() || laterDate.getMonth() - earlierDate.getMonth() || laterDate.getDate() - earlierDate.getDate() || laterDate.getHours() - earlierDate.getHours() || laterDate.getMinutes() - earlierDate.getMinutes() || laterDate.getSeconds() - earlierDate.getSeconds() || laterDate.getMilliseconds() - earlierDate.getMilliseconds();
-	if (diff < 0) return -1;
-	if (diff > 0) return 1;
-	return diff;
-}
-function getRoundingMethod(method) {
-	return (number$5) => {
-		const result = (method ? Math[method] : Math.trunc)(number$5);
-		return result === 0 ? 0 : result;
-	};
-}
-function differenceInMilliseconds(laterDate, earlierDate) {
-	return +toDate(laterDate) - +toDate(earlierDate);
-}
-function endOfDay(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	_date.setHours(23, 59, 59, 999);
-	return _date;
-}
-function endOfMonth(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	const month = _date.getMonth();
-	_date.setFullYear(_date.getFullYear(), month + 1, 0);
-	_date.setHours(23, 59, 59, 999);
-	return _date;
-}
-function isLastDayOfMonth(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	return +endOfDay(_date, options$1) === +endOfMonth(_date, options$1);
-}
-function differenceInMonths(laterDate, earlierDate, options$1) {
-	const [laterDate_, workingLaterDate, earlierDate_] = normalizeDates(options$1?.in, laterDate, laterDate, earlierDate);
-	const sign$1 = compareAsc(workingLaterDate, earlierDate_);
-	const difference = Math.abs(differenceInCalendarMonths(workingLaterDate, earlierDate_));
-	if (difference < 1) return 0;
-	if (workingLaterDate.getMonth() === 1 && workingLaterDate.getDate() > 27) workingLaterDate.setDate(30);
-	workingLaterDate.setMonth(workingLaterDate.getMonth() - sign$1 * difference);
-	let isLastMonthNotFull = compareAsc(workingLaterDate, earlierDate_) === -sign$1;
-	if (isLastDayOfMonth(laterDate_) && difference === 1 && compareAsc(laterDate_, earlierDate_) === 1) isLastMonthNotFull = false;
-	const result = sign$1 * (difference - +isLastMonthNotFull);
-	return result === 0 ? 0 : result;
-}
-function differenceInSeconds(laterDate, earlierDate, options$1) {
-	const diff = differenceInMilliseconds(laterDate, earlierDate) / 1e3;
-	return getRoundingMethod(options$1?.roundingMethod)(diff);
-}
-function startOfYear(date$3, options$1) {
-	const date_ = toDate(date$3, options$1?.in);
-	date_.setFullYear(date_.getFullYear(), 0, 1);
-	date_.setHours(0, 0, 0, 0);
-	return date_;
-}
-var formatDistanceLocale$1 = {
-	lessThanXSeconds: {
-		one: "less than a second",
-		other: "less than {{count}} seconds"
-	},
-	xSeconds: {
-		one: "1 second",
-		other: "{{count}} seconds"
-	},
-	halfAMinute: "half a minute",
-	lessThanXMinutes: {
-		one: "less than a minute",
-		other: "less than {{count}} minutes"
-	},
-	xMinutes: {
-		one: "1 minute",
-		other: "{{count}} minutes"
-	},
-	aboutXHours: {
-		one: "about 1 hour",
-		other: "about {{count}} hours"
-	},
-	xHours: {
-		one: "1 hour",
-		other: "{{count}} hours"
-	},
-	xDays: {
-		one: "1 day",
-		other: "{{count}} days"
-	},
-	aboutXWeeks: {
-		one: "about 1 week",
-		other: "about {{count}} weeks"
-	},
-	xWeeks: {
-		one: "1 week",
-		other: "{{count}} weeks"
-	},
-	aboutXMonths: {
-		one: "about 1 month",
-		other: "about {{count}} months"
-	},
-	xMonths: {
-		one: "1 month",
-		other: "{{count}} months"
-	},
-	aboutXYears: {
-		one: "about 1 year",
-		other: "about {{count}} years"
-	},
-	xYears: {
-		one: "1 year",
-		other: "{{count}} years"
-	},
-	overXYears: {
-		one: "over 1 year",
-		other: "over {{count}} years"
-	},
-	almostXYears: {
-		one: "almost 1 year",
-		other: "almost {{count}} years"
-	}
-};
-const formatDistance$2 = (token, count$3, options$1) => {
-	let result;
-	const tokenValue = formatDistanceLocale$1[token];
-	if (typeof tokenValue === "string") result = tokenValue;
-	else if (count$3 === 1) result = tokenValue.one;
-	else result = tokenValue.other.replace("{{count}}", count$3.toString());
-	if (options$1?.addSuffix) if (options$1.comparison && options$1.comparison > 0) return "in " + result;
-	else return result + " ago";
-	return result;
-};
-function buildFormatLongFn(args) {
-	return (options$1 = {}) => {
-		const width = options$1.width ? String(options$1.width) : args.defaultWidth;
-		return args.formats[width] || args.formats[args.defaultWidth];
-	};
-}
-const formatLong$1 = {
-	date: buildFormatLongFn({
-		formats: {
-			full: "EEEE, MMMM do, y",
-			long: "MMMM do, y",
-			medium: "MMM d, y",
-			short: "MM/dd/yyyy"
-		},
-		defaultWidth: "full"
-	}),
-	time: buildFormatLongFn({
-		formats: {
-			full: "h:mm:ss a zzzz",
-			long: "h:mm:ss a z",
-			medium: "h:mm:ss a",
-			short: "h:mm a"
-		},
-		defaultWidth: "full"
-	}),
-	dateTime: buildFormatLongFn({
-		formats: {
-			full: "{{date}} 'at' {{time}}",
-			long: "{{date}} 'at' {{time}}",
-			medium: "{{date}}, {{time}}",
-			short: "{{date}}, {{time}}"
-		},
-		defaultWidth: "full"
-	})
-};
-var formatRelativeLocale$1 = {
-	lastWeek: "'last' eeee 'at' p",
-	yesterday: "'yesterday at' p",
-	today: "'today at' p",
-	tomorrow: "'tomorrow at' p",
-	nextWeek: "eeee 'at' p",
-	other: "P"
-};
-const formatRelative$1 = (token, _date, _baseDate, _options) => formatRelativeLocale$1[token];
-function buildLocalizeFn(args) {
-	return (value, options$1) => {
-		const context = options$1?.context ? String(options$1.context) : "standalone";
-		let valuesArray;
-		if (context === "formatting" && args.formattingValues) {
-			const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
-			const width = options$1?.width ? String(options$1.width) : defaultWidth;
-			valuesArray = args.formattingValues[width] || args.formattingValues[defaultWidth];
-		} else {
-			const defaultWidth = args.defaultWidth;
-			const width = options$1?.width ? String(options$1.width) : args.defaultWidth;
-			valuesArray = args.values[width] || args.values[defaultWidth];
-		}
-		const index$1 = args.argumentCallback ? args.argumentCallback(value) : value;
-		return valuesArray[index$1];
-	};
-}
-var eraValues$1 = {
-	narrow: ["B", "A"],
-	abbreviated: ["BC", "AD"],
-	wide: ["Before Christ", "Anno Domini"]
-};
-var quarterValues$1 = {
-	narrow: [
-		"1",
-		"2",
-		"3",
-		"4"
-	],
-	abbreviated: [
-		"Q1",
-		"Q2",
-		"Q3",
-		"Q4"
-	],
-	wide: [
-		"1st quarter",
-		"2nd quarter",
-		"3rd quarter",
-		"4th quarter"
-	]
-};
-var monthValues$1 = {
-	narrow: [
-		"J",
-		"F",
-		"M",
-		"A",
-		"M",
-		"J",
-		"J",
-		"A",
-		"S",
-		"O",
-		"N",
-		"D"
-	],
-	abbreviated: [
-		"Jan",
-		"Feb",
-		"Mar",
-		"Apr",
-		"May",
-		"Jun",
-		"Jul",
-		"Aug",
-		"Sep",
-		"Oct",
-		"Nov",
-		"Dec"
-	],
-	wide: [
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December"
-	]
-};
-var dayValues$1 = {
-	narrow: [
-		"S",
-		"M",
-		"T",
-		"W",
-		"T",
-		"F",
-		"S"
-	],
-	short: [
-		"Su",
-		"Mo",
-		"Tu",
-		"We",
-		"Th",
-		"Fr",
-		"Sa"
-	],
-	abbreviated: [
-		"Sun",
-		"Mon",
-		"Tue",
-		"Wed",
-		"Thu",
-		"Fri",
-		"Sat"
-	],
-	wide: [
-		"Sunday",
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday"
-	]
-};
-var dayPeriodValues$1 = {
-	narrow: {
-		am: "a",
-		pm: "p",
-		midnight: "mi",
-		noon: "n",
-		morning: "morning",
-		afternoon: "afternoon",
-		evening: "evening",
-		night: "night"
-	},
-	abbreviated: {
-		am: "AM",
-		pm: "PM",
-		midnight: "midnight",
-		noon: "noon",
-		morning: "morning",
-		afternoon: "afternoon",
-		evening: "evening",
-		night: "night"
-	},
-	wide: {
-		am: "a.m.",
-		pm: "p.m.",
-		midnight: "midnight",
-		noon: "noon",
-		morning: "morning",
-		afternoon: "afternoon",
-		evening: "evening",
-		night: "night"
-	}
-};
-var formattingDayPeriodValues$1 = {
-	narrow: {
-		am: "a",
-		pm: "p",
-		midnight: "mi",
-		noon: "n",
-		morning: "in the morning",
-		afternoon: "in the afternoon",
-		evening: "in the evening",
-		night: "at night"
-	},
-	abbreviated: {
-		am: "AM",
-		pm: "PM",
-		midnight: "midnight",
-		noon: "noon",
-		morning: "in the morning",
-		afternoon: "in the afternoon",
-		evening: "in the evening",
-		night: "at night"
-	},
-	wide: {
-		am: "a.m.",
-		pm: "p.m.",
-		midnight: "midnight",
-		noon: "noon",
-		morning: "in the morning",
-		afternoon: "in the afternoon",
-		evening: "in the evening",
-		night: "at night"
-	}
-};
-var ordinalNumber$1 = (dirtyNumber, _options) => {
-	const number$5 = Number(dirtyNumber);
-	const rem100 = number$5 % 100;
-	if (rem100 > 20 || rem100 < 10) switch (rem100 % 10) {
-		case 1: return number$5 + "st";
-		case 2: return number$5 + "nd";
-		case 3: return number$5 + "rd";
-	}
-	return number$5 + "th";
-};
-const localize$1 = {
-	ordinalNumber: ordinalNumber$1,
-	era: buildLocalizeFn({
-		values: eraValues$1,
-		defaultWidth: "wide"
-	}),
-	quarter: buildLocalizeFn({
-		values: quarterValues$1,
-		defaultWidth: "wide",
-		argumentCallback: (quarter) => quarter - 1
-	}),
-	month: buildLocalizeFn({
-		values: monthValues$1,
-		defaultWidth: "wide"
-	}),
-	day: buildLocalizeFn({
-		values: dayValues$1,
-		defaultWidth: "wide"
-	}),
-	dayPeriod: buildLocalizeFn({
-		values: dayPeriodValues$1,
-		defaultWidth: "wide",
-		formattingValues: formattingDayPeriodValues$1,
-		defaultFormattingWidth: "wide"
-	})
-};
-function buildMatchFn(args) {
-	return (string$2, options$1 = {}) => {
-		const width = options$1.width;
-		const matchPattern = width && args.matchPatterns[width] || args.matchPatterns[args.defaultMatchWidth];
-		const matchResult = string$2.match(matchPattern);
-		if (!matchResult) return null;
-		const matchedString = matchResult[0];
-		const parsePatterns = width && args.parsePatterns[width] || args.parsePatterns[args.defaultParseWidth];
-		const key = Array.isArray(parsePatterns) ? findIndex$1(parsePatterns, (pattern) => pattern.test(matchedString)) : findKey(parsePatterns, (pattern) => pattern.test(matchedString));
-		let value;
-		value = args.valueCallback ? args.valueCallback(key) : key;
-		value = options$1.valueCallback ? options$1.valueCallback(value) : value;
-		const rest = string$2.slice(matchedString.length);
-		return {
-			value,
-			rest
-		};
-	};
-}
-function findKey(object$1, predicate) {
-	for (const key in object$1) if (Object.prototype.hasOwnProperty.call(object$1, key) && predicate(object$1[key])) return key;
-}
-function findIndex$1(array$1, predicate) {
-	for (let key = 0; key < array$1.length; key++) if (predicate(array$1[key])) return key;
-}
-function buildMatchPatternFn(args) {
-	return (string$2, options$1 = {}) => {
-		const matchResult = string$2.match(args.matchPattern);
-		if (!matchResult) return null;
-		const matchedString = matchResult[0];
-		const parseResult = string$2.match(args.parsePattern);
-		if (!parseResult) return null;
-		let value = args.valueCallback ? args.valueCallback(parseResult[0]) : parseResult[0];
-		value = options$1.valueCallback ? options$1.valueCallback(value) : value;
-		const rest = string$2.slice(matchedString.length);
-		return {
-			value,
-			rest
-		};
-	};
-}
-const enUS = {
-	code: "en-US",
-	formatDistance: formatDistance$2,
-	formatLong: formatLong$1,
-	formatRelative: formatRelative$1,
-	localize: localize$1,
-	match: {
-		ordinalNumber: buildMatchPatternFn({
-			matchPattern: /^(\d+)(th|st|nd|rd)?/i,
-			parsePattern: /\d+/i,
-			valueCallback: (value) => parseInt(value, 10)
-		}),
-		era: buildMatchFn({
-			matchPatterns: {
-				narrow: /^(b|a)/i,
-				abbreviated: /^(b\.?\s?c\.?|b\.?\s?c\.?\s?e\.?|a\.?\s?d\.?|c\.?\s?e\.?)/i,
-				wide: /^(before christ|before common era|anno domini|common era)/i
-			},
-			defaultMatchWidth: "wide",
-			parsePatterns: { any: [/^b/i, /^(a|c)/i] },
-			defaultParseWidth: "any"
-		}),
-		quarter: buildMatchFn({
-			matchPatterns: {
-				narrow: /^[1234]/i,
-				abbreviated: /^q[1234]/i,
-				wide: /^[1234](th|st|nd|rd)? quarter/i
-			},
-			defaultMatchWidth: "wide",
-			parsePatterns: { any: [
-				/1/i,
-				/2/i,
-				/3/i,
-				/4/i
-			] },
-			defaultParseWidth: "any",
-			valueCallback: (index$1) => index$1 + 1
-		}),
-		month: buildMatchFn({
-			matchPatterns: {
-				narrow: /^[jfmasond]/i,
-				abbreviated: /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,
-				wide: /^(january|february|march|april|may|june|july|august|september|october|november|december)/i
-			},
-			defaultMatchWidth: "wide",
-			parsePatterns: {
-				narrow: [
-					/^j/i,
-					/^f/i,
-					/^m/i,
-					/^a/i,
-					/^m/i,
-					/^j/i,
-					/^j/i,
-					/^a/i,
-					/^s/i,
-					/^o/i,
-					/^n/i,
-					/^d/i
-				],
-				any: [
-					/^ja/i,
-					/^f/i,
-					/^mar/i,
-					/^ap/i,
-					/^may/i,
-					/^jun/i,
-					/^jul/i,
-					/^au/i,
-					/^s/i,
-					/^o/i,
-					/^n/i,
-					/^d/i
-				]
-			},
-			defaultParseWidth: "any"
-		}),
-		day: buildMatchFn({
-			matchPatterns: {
-				narrow: /^[smtwf]/i,
-				short: /^(su|mo|tu|we|th|fr|sa)/i,
-				abbreviated: /^(sun|mon|tue|wed|thu|fri|sat)/i,
-				wide: /^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i
-			},
-			defaultMatchWidth: "wide",
-			parsePatterns: {
-				narrow: [
-					/^s/i,
-					/^m/i,
-					/^t/i,
-					/^w/i,
-					/^t/i,
-					/^f/i,
-					/^s/i
-				],
-				any: [
-					/^su/i,
-					/^m/i,
-					/^tu/i,
-					/^w/i,
-					/^th/i,
-					/^f/i,
-					/^sa/i
-				]
-			},
-			defaultParseWidth: "any"
-		}),
-		dayPeriod: buildMatchFn({
-			matchPatterns: {
-				narrow: /^(a|p|mi|n|(in the|at) (morning|afternoon|evening|night))/i,
-				any: /^([ap]\.?\s?m\.?|midnight|noon|(in the|at) (morning|afternoon|evening|night))/i
-			},
-			defaultMatchWidth: "any",
-			parsePatterns: { any: {
-				am: /^a/i,
-				pm: /^p/i,
-				midnight: /^mi/i,
-				noon: /^no/i,
-				morning: /morning/i,
-				afternoon: /afternoon/i,
-				evening: /evening/i,
-				night: /night/i
-			} },
-			defaultParseWidth: "any"
-		})
-	},
-	options: {
-		weekStartsOn: 0,
-		firstWeekContainsDate: 1
-	}
-};
-function getDayOfYear(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	return differenceInCalendarDays(_date, startOfYear(_date)) + 1;
-}
-function getISOWeek(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
-	return Math.round(diff / millisecondsInWeek) + 1;
-}
-function getWeekYear(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	const year = _date.getFullYear();
-	const defaultOptions$2 = getDefaultOptions();
-	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
-	const firstWeekOfNextYear = constructFrom(options$1?.in || date$3, 0);
-	firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
-	firstWeekOfNextYear.setHours(0, 0, 0, 0);
-	const startOfNextYear = startOfWeek(firstWeekOfNextYear, options$1);
-	const firstWeekOfThisYear = constructFrom(options$1?.in || date$3, 0);
-	firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
-	firstWeekOfThisYear.setHours(0, 0, 0, 0);
-	const startOfThisYear = startOfWeek(firstWeekOfThisYear, options$1);
-	if (+_date >= +startOfNextYear) return year + 1;
-	else if (+_date >= +startOfThisYear) return year;
-	else return year - 1;
-}
-function startOfWeekYear(date$3, options$1) {
-	const defaultOptions$2 = getDefaultOptions();
-	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
-	const year = getWeekYear(date$3, options$1);
-	const firstWeek = constructFrom(options$1?.in || date$3, 0);
-	firstWeek.setFullYear(year, 0, firstWeekContainsDate);
-	firstWeek.setHours(0, 0, 0, 0);
-	return startOfWeek(firstWeek, options$1);
-}
-function getWeek(date$3, options$1) {
-	const _date = toDate(date$3, options$1?.in);
-	const diff = +startOfWeek(_date, options$1) - +startOfWeekYear(_date, options$1);
-	return Math.round(diff / millisecondsInWeek) + 1;
-}
-function addLeadingZeros(number$5, targetLength) {
-	return (number$5 < 0 ? "-" : "") + Math.abs(number$5).toString().padStart(targetLength, "0");
-}
-const lightFormatters = {
-	y(date$3, token) {
-		const signedYear = date$3.getFullYear();
-		const year = signedYear > 0 ? signedYear : 1 - signedYear;
-		return addLeadingZeros(token === "yy" ? year % 100 : year, token.length);
-	},
-	M(date$3, token) {
-		const month = date$3.getMonth();
-		return token === "M" ? String(month + 1) : addLeadingZeros(month + 1, 2);
-	},
-	d(date$3, token) {
-		return addLeadingZeros(date$3.getDate(), token.length);
-	},
-	a(date$3, token) {
-		const dayPeriodEnumValue = date$3.getHours() / 12 >= 1 ? "pm" : "am";
-		switch (token) {
-			case "a":
-			case "aa": return dayPeriodEnumValue.toUpperCase();
-			case "aaa": return dayPeriodEnumValue;
-			case "aaaaa": return dayPeriodEnumValue[0];
-			case "aaaa":
-			default: return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
-		}
-	},
-	h(date$3, token) {
-		return addLeadingZeros(date$3.getHours() % 12 || 12, token.length);
-	},
-	H(date$3, token) {
-		return addLeadingZeros(date$3.getHours(), token.length);
-	},
-	m(date$3, token) {
-		return addLeadingZeros(date$3.getMinutes(), token.length);
-	},
-	s(date$3, token) {
-		return addLeadingZeros(date$3.getSeconds(), token.length);
-	},
-	S(date$3, token) {
-		const numberOfDigits = token.length;
-		const milliseconds$1 = date$3.getMilliseconds();
-		return addLeadingZeros(Math.trunc(milliseconds$1 * Math.pow(10, numberOfDigits - 3)), token.length);
-	}
-};
-var dayPeriodEnum = {
-	am: "am",
-	pm: "pm",
-	midnight: "midnight",
-	noon: "noon",
-	morning: "morning",
-	afternoon: "afternoon",
-	evening: "evening",
-	night: "night"
-};
-const formatters = {
-	G: function(date$3, token, localize$2) {
-		const era = date$3.getFullYear() > 0 ? 1 : 0;
-		switch (token) {
-			case "G":
-			case "GG":
-			case "GGG": return localize$2.era(era, { width: "abbreviated" });
-			case "GGGGG": return localize$2.era(era, { width: "narrow" });
-			case "GGGG":
-			default: return localize$2.era(era, { width: "wide" });
-		}
-	},
-	y: function(date$3, token, localize$2) {
-		if (token === "yo") {
-			const signedYear = date$3.getFullYear();
-			const year = signedYear > 0 ? signedYear : 1 - signedYear;
-			return localize$2.ordinalNumber(year, { unit: "year" });
-		}
-		return lightFormatters.y(date$3, token);
-	},
-	Y: function(date$3, token, localize$2, options$1) {
-		const signedWeekYear = getWeekYear(date$3, options$1);
-		const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
-		if (token === "YY") return addLeadingZeros(weekYear % 100, 2);
-		if (token === "Yo") return localize$2.ordinalNumber(weekYear, { unit: "year" });
-		return addLeadingZeros(weekYear, token.length);
-	},
-	R: function(date$3, token) {
-		return addLeadingZeros(getISOWeekYear(date$3), token.length);
-	},
-	u: function(date$3, token) {
-		return addLeadingZeros(date$3.getFullYear(), token.length);
-	},
-	Q: function(date$3, token, localize$2) {
-		const quarter = Math.ceil((date$3.getMonth() + 1) / 3);
-		switch (token) {
-			case "Q": return String(quarter);
-			case "QQ": return addLeadingZeros(quarter, 2);
-			case "Qo": return localize$2.ordinalNumber(quarter, { unit: "quarter" });
-			case "QQQ": return localize$2.quarter(quarter, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "QQQQQ": return localize$2.quarter(quarter, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "QQQQ":
-			default: return localize$2.quarter(quarter, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	q: function(date$3, token, localize$2) {
-		const quarter = Math.ceil((date$3.getMonth() + 1) / 3);
-		switch (token) {
-			case "q": return String(quarter);
-			case "qq": return addLeadingZeros(quarter, 2);
-			case "qo": return localize$2.ordinalNumber(quarter, { unit: "quarter" });
-			case "qqq": return localize$2.quarter(quarter, {
-				width: "abbreviated",
-				context: "standalone"
-			});
-			case "qqqqq": return localize$2.quarter(quarter, {
-				width: "narrow",
-				context: "standalone"
-			});
-			case "qqqq":
-			default: return localize$2.quarter(quarter, {
-				width: "wide",
-				context: "standalone"
-			});
-		}
-	},
-	M: function(date$3, token, localize$2) {
-		const month = date$3.getMonth();
-		switch (token) {
-			case "M":
-			case "MM": return lightFormatters.M(date$3, token);
-			case "Mo": return localize$2.ordinalNumber(month + 1, { unit: "month" });
-			case "MMM": return localize$2.month(month, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "MMMMM": return localize$2.month(month, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "MMMM":
-			default: return localize$2.month(month, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	L: function(date$3, token, localize$2) {
-		const month = date$3.getMonth();
-		switch (token) {
-			case "L": return String(month + 1);
-			case "LL": return addLeadingZeros(month + 1, 2);
-			case "Lo": return localize$2.ordinalNumber(month + 1, { unit: "month" });
-			case "LLL": return localize$2.month(month, {
-				width: "abbreviated",
-				context: "standalone"
-			});
-			case "LLLLL": return localize$2.month(month, {
-				width: "narrow",
-				context: "standalone"
-			});
-			case "LLLL":
-			default: return localize$2.month(month, {
-				width: "wide",
-				context: "standalone"
-			});
-		}
-	},
-	w: function(date$3, token, localize$2, options$1) {
-		const week = getWeek(date$3, options$1);
-		if (token === "wo") return localize$2.ordinalNumber(week, { unit: "week" });
-		return addLeadingZeros(week, token.length);
-	},
-	I: function(date$3, token, localize$2) {
-		const isoWeek = getISOWeek(date$3);
-		if (token === "Io") return localize$2.ordinalNumber(isoWeek, { unit: "week" });
-		return addLeadingZeros(isoWeek, token.length);
-	},
-	d: function(date$3, token, localize$2) {
-		if (token === "do") return localize$2.ordinalNumber(date$3.getDate(), { unit: "date" });
-		return lightFormatters.d(date$3, token);
-	},
-	D: function(date$3, token, localize$2) {
-		const dayOfYear = getDayOfYear(date$3);
-		if (token === "Do") return localize$2.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
-		return addLeadingZeros(dayOfYear, token.length);
-	},
-	E: function(date$3, token, localize$2) {
-		const dayOfWeek = date$3.getDay();
-		switch (token) {
-			case "E":
-			case "EE":
-			case "EEE": return localize$2.day(dayOfWeek, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "EEEEE": return localize$2.day(dayOfWeek, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "EEEEEE": return localize$2.day(dayOfWeek, {
-				width: "short",
-				context: "formatting"
-			});
-			case "EEEE":
-			default: return localize$2.day(dayOfWeek, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	e: function(date$3, token, localize$2, options$1) {
-		const dayOfWeek = date$3.getDay();
-		const localDayOfWeek = (dayOfWeek - options$1.weekStartsOn + 8) % 7 || 7;
-		switch (token) {
-			case "e": return String(localDayOfWeek);
-			case "ee": return addLeadingZeros(localDayOfWeek, 2);
-			case "eo": return localize$2.ordinalNumber(localDayOfWeek, { unit: "day" });
-			case "eee": return localize$2.day(dayOfWeek, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "eeeee": return localize$2.day(dayOfWeek, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "eeeeee": return localize$2.day(dayOfWeek, {
-				width: "short",
-				context: "formatting"
-			});
-			case "eeee":
-			default: return localize$2.day(dayOfWeek, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	c: function(date$3, token, localize$2, options$1) {
-		const dayOfWeek = date$3.getDay();
-		const localDayOfWeek = (dayOfWeek - options$1.weekStartsOn + 8) % 7 || 7;
-		switch (token) {
-			case "c": return String(localDayOfWeek);
-			case "cc": return addLeadingZeros(localDayOfWeek, token.length);
-			case "co": return localize$2.ordinalNumber(localDayOfWeek, { unit: "day" });
-			case "ccc": return localize$2.day(dayOfWeek, {
-				width: "abbreviated",
-				context: "standalone"
-			});
-			case "ccccc": return localize$2.day(dayOfWeek, {
-				width: "narrow",
-				context: "standalone"
-			});
-			case "cccccc": return localize$2.day(dayOfWeek, {
-				width: "short",
-				context: "standalone"
-			});
-			case "cccc":
-			default: return localize$2.day(dayOfWeek, {
-				width: "wide",
-				context: "standalone"
-			});
-		}
-	},
-	i: function(date$3, token, localize$2) {
-		const dayOfWeek = date$3.getDay();
-		const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
-		switch (token) {
-			case "i": return String(isoDayOfWeek);
-			case "ii": return addLeadingZeros(isoDayOfWeek, token.length);
-			case "io": return localize$2.ordinalNumber(isoDayOfWeek, { unit: "day" });
-			case "iii": return localize$2.day(dayOfWeek, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "iiiii": return localize$2.day(dayOfWeek, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "iiiiii": return localize$2.day(dayOfWeek, {
-				width: "short",
-				context: "formatting"
-			});
-			case "iiii":
-			default: return localize$2.day(dayOfWeek, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	a: function(date$3, token, localize$2) {
-		const dayPeriodEnumValue = date$3.getHours() / 12 >= 1 ? "pm" : "am";
-		switch (token) {
-			case "a":
-			case "aa": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "aaa": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "abbreviated",
-				context: "formatting"
-			}).toLowerCase();
-			case "aaaaa": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "aaaa":
-			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	b: function(date$3, token, localize$2) {
-		const hours = date$3.getHours();
-		let dayPeriodEnumValue;
-		if (hours === 12) dayPeriodEnumValue = dayPeriodEnum.noon;
-		else if (hours === 0) dayPeriodEnumValue = dayPeriodEnum.midnight;
-		else dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
-		switch (token) {
-			case "b":
-			case "bb": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "bbb": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "abbreviated",
-				context: "formatting"
-			}).toLowerCase();
-			case "bbbbb": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "bbbb":
-			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	B: function(date$3, token, localize$2) {
-		const hours = date$3.getHours();
-		let dayPeriodEnumValue;
-		if (hours >= 17) dayPeriodEnumValue = dayPeriodEnum.evening;
-		else if (hours >= 12) dayPeriodEnumValue = dayPeriodEnum.afternoon;
-		else if (hours >= 4) dayPeriodEnumValue = dayPeriodEnum.morning;
-		else dayPeriodEnumValue = dayPeriodEnum.night;
-		switch (token) {
-			case "B":
-			case "BB":
-			case "BBB": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "abbreviated",
-				context: "formatting"
-			});
-			case "BBBBB": return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "narrow",
-				context: "formatting"
-			});
-			case "BBBB":
-			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
-				width: "wide",
-				context: "formatting"
-			});
-		}
-	},
-	h: function(date$3, token, localize$2) {
-		if (token === "ho") {
-			let hours = date$3.getHours() % 12;
-			if (hours === 0) hours = 12;
-			return localize$2.ordinalNumber(hours, { unit: "hour" });
-		}
-		return lightFormatters.h(date$3, token);
-	},
-	H: function(date$3, token, localize$2) {
-		if (token === "Ho") return localize$2.ordinalNumber(date$3.getHours(), { unit: "hour" });
-		return lightFormatters.H(date$3, token);
-	},
-	K: function(date$3, token, localize$2) {
-		const hours = date$3.getHours() % 12;
-		if (token === "Ko") return localize$2.ordinalNumber(hours, { unit: "hour" });
-		return addLeadingZeros(hours, token.length);
-	},
-	k: function(date$3, token, localize$2) {
-		let hours = date$3.getHours();
-		if (hours === 0) hours = 24;
-		if (token === "ko") return localize$2.ordinalNumber(hours, { unit: "hour" });
-		return addLeadingZeros(hours, token.length);
-	},
-	m: function(date$3, token, localize$2) {
-		if (token === "mo") return localize$2.ordinalNumber(date$3.getMinutes(), { unit: "minute" });
-		return lightFormatters.m(date$3, token);
-	},
-	s: function(date$3, token, localize$2) {
-		if (token === "so") return localize$2.ordinalNumber(date$3.getSeconds(), { unit: "second" });
-		return lightFormatters.s(date$3, token);
-	},
-	S: function(date$3, token) {
-		return lightFormatters.S(date$3, token);
-	},
-	X: function(date$3, token, _localize) {
-		const timezoneOffset = date$3.getTimezoneOffset();
-		if (timezoneOffset === 0) return "Z";
-		switch (token) {
-			case "X": return formatTimezoneWithOptionalMinutes(timezoneOffset);
-			case "XXXX":
-			case "XX": return formatTimezone(timezoneOffset);
-			case "XXXXX":
-			case "XXX":
-			default: return formatTimezone(timezoneOffset, ":");
-		}
-	},
-	x: function(date$3, token, _localize) {
-		const timezoneOffset = date$3.getTimezoneOffset();
-		switch (token) {
-			case "x": return formatTimezoneWithOptionalMinutes(timezoneOffset);
-			case "xxxx":
-			case "xx": return formatTimezone(timezoneOffset);
-			case "xxxxx":
-			case "xxx":
-			default: return formatTimezone(timezoneOffset, ":");
-		}
-	},
-	O: function(date$3, token, _localize) {
-		const timezoneOffset = date$3.getTimezoneOffset();
-		switch (token) {
-			case "O":
-			case "OO":
-			case "OOO": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
-			case "OOOO":
-			default: return "GMT" + formatTimezone(timezoneOffset, ":");
-		}
-	},
-	z: function(date$3, token, _localize) {
-		const timezoneOffset = date$3.getTimezoneOffset();
-		switch (token) {
-			case "z":
-			case "zz":
-			case "zzz": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
-			case "zzzz":
-			default: return "GMT" + formatTimezone(timezoneOffset, ":");
-		}
-	},
-	t: function(date$3, token, _localize) {
-		return addLeadingZeros(Math.trunc(+date$3 / 1e3), token.length);
-	},
-	T: function(date$3, token, _localize) {
-		return addLeadingZeros(+date$3, token.length);
-	}
-};
-function formatTimezoneShort(offset$3, delimiter = "") {
-	const sign$1 = offset$3 > 0 ? "-" : "+";
-	const absOffset = Math.abs(offset$3);
-	const hours = Math.trunc(absOffset / 60);
-	const minutes = absOffset % 60;
-	if (minutes === 0) return sign$1 + String(hours);
-	return sign$1 + String(hours) + delimiter + addLeadingZeros(minutes, 2);
-}
-function formatTimezoneWithOptionalMinutes(offset$3, delimiter) {
-	if (offset$3 % 60 === 0) return (offset$3 > 0 ? "-" : "+") + addLeadingZeros(Math.abs(offset$3) / 60, 2);
-	return formatTimezone(offset$3, delimiter);
-}
-function formatTimezone(offset$3, delimiter = "") {
-	const sign$1 = offset$3 > 0 ? "-" : "+";
-	const absOffset = Math.abs(offset$3);
-	const hours = addLeadingZeros(Math.trunc(absOffset / 60), 2);
-	const minutes = addLeadingZeros(absOffset % 60, 2);
-	return sign$1 + hours + delimiter + minutes;
-}
-var dateLongFormatter = (pattern, formatLong$2) => {
-	switch (pattern) {
-		case "P": return formatLong$2.date({ width: "short" });
-		case "PP": return formatLong$2.date({ width: "medium" });
-		case "PPP": return formatLong$2.date({ width: "long" });
-		case "PPPP":
-		default: return formatLong$2.date({ width: "full" });
-	}
-};
-var timeLongFormatter = (pattern, formatLong$2) => {
-	switch (pattern) {
-		case "p": return formatLong$2.time({ width: "short" });
-		case "pp": return formatLong$2.time({ width: "medium" });
-		case "ppp": return formatLong$2.time({ width: "long" });
-		case "pppp":
-		default: return formatLong$2.time({ width: "full" });
-	}
-};
-var dateTimeLongFormatter = (pattern, formatLong$2) => {
-	const matchResult = pattern.match(/(P+)(p+)?/) || [];
-	const datePattern = matchResult[1];
-	const timePattern = matchResult[2];
-	if (!timePattern) return dateLongFormatter(pattern, formatLong$2);
-	let dateTimeFormat;
-	switch (datePattern) {
-		case "P":
-			dateTimeFormat = formatLong$2.dateTime({ width: "short" });
-			break;
-		case "PP":
-			dateTimeFormat = formatLong$2.dateTime({ width: "medium" });
-			break;
-		case "PPP":
-			dateTimeFormat = formatLong$2.dateTime({ width: "long" });
-			break;
-		case "PPPP":
-		default:
-			dateTimeFormat = formatLong$2.dateTime({ width: "full" });
-			break;
-	}
-	return dateTimeFormat.replace("{{date}}", dateLongFormatter(datePattern, formatLong$2)).replace("{{time}}", timeLongFormatter(timePattern, formatLong$2));
-};
-const longFormatters = {
-	p: timeLongFormatter,
-	P: dateTimeLongFormatter
-};
-var dayOfYearTokenRE = /^D+$/;
-var weekYearTokenRE = /^Y+$/;
-var throwTokens = [
-	"D",
-	"DD",
-	"YY",
-	"YYYY"
-];
-function isProtectedDayOfYearToken(token) {
-	return dayOfYearTokenRE.test(token);
-}
-function isProtectedWeekYearToken(token) {
-	return weekYearTokenRE.test(token);
-}
-function warnOrThrowProtectedError(token, format$2, input) {
-	const _message = message(token, format$2, input);
-	console.warn(_message);
-	if (throwTokens.includes(token)) throw new RangeError(_message);
-}
-function message(token, format$2, input) {
-	const subject = token[0] === "Y" ? "years" : "days of the month";
-	return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format$2}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
-}
-var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
-var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
-var escapedStringRegExp = /^'([^]*?)'?$/;
-var doubleQuoteRegExp = /''/g;
-var unescapedLatinCharacterRegExp = /[a-zA-Z]/;
-function format(date$3, formatStr, options$1) {
-	const defaultOptions$2 = getDefaultOptions();
-	const locale$2 = options$1?.locale ?? defaultOptions$2.locale ?? enUS;
-	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
-	const weekStartsOn = options$1?.weekStartsOn ?? options$1?.locale?.options?.weekStartsOn ?? defaultOptions$2.weekStartsOn ?? defaultOptions$2.locale?.options?.weekStartsOn ?? 0;
-	const originalDate = toDate(date$3, options$1?.in);
-	if (!isValid(originalDate)) throw new RangeError("Invalid time value");
-	let parts = formatStr.match(longFormattingTokensRegExp).map((substring) => {
-		const firstCharacter = substring[0];
-		if (firstCharacter === "p" || firstCharacter === "P") {
-			const longFormatter = longFormatters[firstCharacter];
-			return longFormatter(substring, locale$2.formatLong);
-		}
-		return substring;
-	}).join("").match(formattingTokensRegExp).map((substring) => {
-		if (substring === "''") return {
-			isToken: false,
-			value: "'"
-		};
-		const firstCharacter = substring[0];
-		if (firstCharacter === "'") return {
-			isToken: false,
-			value: cleanEscapedString(substring)
-		};
-		if (formatters[firstCharacter]) return {
-			isToken: true,
-			value: substring
-		};
-		if (firstCharacter.match(unescapedLatinCharacterRegExp)) throw new RangeError("Format string contains an unescaped latin alphabet character `" + firstCharacter + "`");
-		return {
-			isToken: false,
-			value: substring
-		};
-	});
-	if (locale$2.localize.preprocessor) parts = locale$2.localize.preprocessor(originalDate, parts);
-	const formatterOptions = {
-		firstWeekContainsDate,
-		weekStartsOn,
-		locale: locale$2
-	};
-	return parts.map((part) => {
-		if (!part.isToken) return part.value;
-		const token = part.value;
-		if (!options$1?.useAdditionalWeekYearTokens && isProtectedWeekYearToken(token) || !options$1?.useAdditionalDayOfYearTokens && isProtectedDayOfYearToken(token)) warnOrThrowProtectedError(token, formatStr, String(date$3));
-		const formatter = formatters[token[0]];
-		return formatter(originalDate, token, locale$2.localize, formatterOptions);
-	}).join("");
-}
-function cleanEscapedString(input) {
-	const matched = input.match(escapedStringRegExp);
-	if (!matched) return input;
-	return matched[1].replace(doubleQuoteRegExp, "'");
-}
-function formatDistance$1(laterDate, earlierDate, options$1) {
-	const defaultOptions$2 = getDefaultOptions();
-	const locale$2 = options$1?.locale ?? defaultOptions$2.locale ?? enUS;
-	const minutesInAlmostTwoDays = 2520;
-	const comparison = compareAsc(laterDate, earlierDate);
-	if (isNaN(comparison)) throw new RangeError("Invalid time value");
-	const localizeOptions = Object.assign({}, options$1, {
-		addSuffix: options$1?.addSuffix,
-		comparison
-	});
-	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, ...comparison > 0 ? [earlierDate, laterDate] : [laterDate, earlierDate]);
-	const seconds$1 = differenceInSeconds(earlierDate_, laterDate_);
-	const offsetInSeconds = (getTimezoneOffsetInMilliseconds(earlierDate_) - getTimezoneOffsetInMilliseconds(laterDate_)) / 1e3;
-	const minutes = Math.round((seconds$1 - offsetInSeconds) / 60);
-	let months;
-	if (minutes < 2) if (options$1?.includeSeconds) if (seconds$1 < 5) return locale$2.formatDistance("lessThanXSeconds", 5, localizeOptions);
-	else if (seconds$1 < 10) return locale$2.formatDistance("lessThanXSeconds", 10, localizeOptions);
-	else if (seconds$1 < 20) return locale$2.formatDistance("lessThanXSeconds", 20, localizeOptions);
-	else if (seconds$1 < 40) return locale$2.formatDistance("halfAMinute", 0, localizeOptions);
-	else if (seconds$1 < 60) return locale$2.formatDistance("lessThanXMinutes", 1, localizeOptions);
-	else return locale$2.formatDistance("xMinutes", 1, localizeOptions);
-	else if (minutes === 0) return locale$2.formatDistance("lessThanXMinutes", 1, localizeOptions);
-	else return locale$2.formatDistance("xMinutes", minutes, localizeOptions);
-	else if (minutes < 45) return locale$2.formatDistance("xMinutes", minutes, localizeOptions);
-	else if (minutes < 90) return locale$2.formatDistance("aboutXHours", 1, localizeOptions);
-	else if (minutes < 1440) {
-		const hours = Math.round(minutes / 60);
-		return locale$2.formatDistance("aboutXHours", hours, localizeOptions);
-	} else if (minutes < minutesInAlmostTwoDays) return locale$2.formatDistance("xDays", 1, localizeOptions);
-	else if (minutes < 43200) {
-		const days = Math.round(minutes / minutesInDay);
-		return locale$2.formatDistance("xDays", days, localizeOptions);
-	} else if (minutes < 43200 * 2) {
-		months = Math.round(minutes / minutesInMonth);
-		return locale$2.formatDistance("aboutXMonths", months, localizeOptions);
-	}
-	months = differenceInMonths(earlierDate_, laterDate_);
-	if (months < 12) {
-		const nearestMonth = Math.round(minutes / minutesInMonth);
-		return locale$2.formatDistance("xMonths", nearestMonth, localizeOptions);
-	} else {
-		const monthsSinceStartOfYear = months % 12;
-		const years = Math.trunc(months / 12);
-		if (monthsSinceStartOfYear < 3) return locale$2.formatDistance("aboutXYears", years, localizeOptions);
-		else if (monthsSinceStartOfYear < 9) return locale$2.formatDistance("overXYears", years, localizeOptions);
-		else return locale$2.formatDistance("almostXYears", years + 1, localizeOptions);
-	}
-}
-function formatDistanceToNow(date$3, options$1) {
-	return formatDistance$1(date$3, constructNow(date$3), options$1);
-}
-function isPast(date$3) {
-	return +toDate(date$3) < Date.now();
-}
-function subDays(date$3, amount, options$1) {
-	return addDays(date$3, -amount, options$1);
-}
-function parseISO(argument, options$1) {
-	const invalidDate = () => constructFrom(options$1?.in, NaN);
-	const additionalDigits = options$1?.additionalDigits ?? 2;
-	const dateStrings = splitDateString(argument);
-	let date$3;
-	if (dateStrings.date) {
-		const parseYearResult = parseYear$1(dateStrings.date, additionalDigits);
-		date$3 = parseDate(parseYearResult.restDateString, parseYearResult.year);
-	}
-	if (!date$3 || isNaN(+date$3)) return invalidDate();
-	const timestamp = +date$3;
-	let time$3 = 0;
-	let offset$3;
-	if (dateStrings.time) {
-		time$3 = parseTime(dateStrings.time);
-		if (isNaN(time$3)) return invalidDate();
-	}
-	if (dateStrings.timezone) {
-		offset$3 = parseTimezone(dateStrings.timezone);
-		if (isNaN(offset$3)) return invalidDate();
-	} else {
-		const tmpDate = new Date(timestamp + time$3);
-		const result = toDate(0, options$1?.in);
-		result.setFullYear(tmpDate.getUTCFullYear(), tmpDate.getUTCMonth(), tmpDate.getUTCDate());
-		result.setHours(tmpDate.getUTCHours(), tmpDate.getUTCMinutes(), tmpDate.getUTCSeconds(), tmpDate.getUTCMilliseconds());
-		return result;
-	}
-	return toDate(timestamp + time$3 + offset$3, options$1?.in);
-}
-var patterns = {
-	dateTimeDelimiter: /[T ]/,
-	timeZoneDelimiter: /[Z ]/i,
-	timezone: /([Z+-].*)$/
-};
-var dateRegex = /^-?(?:(\d{3})|(\d{2})(?:-?(\d{2}))?|W(\d{2})(?:-?(\d{1}))?|)$/;
-var timeRegex = /^(\d{2}(?:[.,]\d*)?)(?::?(\d{2}(?:[.,]\d*)?))?(?::?(\d{2}(?:[.,]\d*)?))?$/;
-var timezoneRegex = /^([+-])(\d{2})(?::?(\d{2}))?$/;
-function splitDateString(dateString) {
-	const dateStrings = {};
-	const array$1 = dateString.split(patterns.dateTimeDelimiter);
-	let timeString;
-	if (array$1.length > 2) return dateStrings;
-	if (/:/.test(array$1[0])) timeString = array$1[0];
-	else {
-		dateStrings.date = array$1[0];
-		timeString = array$1[1];
-		if (patterns.timeZoneDelimiter.test(dateStrings.date)) {
-			dateStrings.date = dateString.split(patterns.timeZoneDelimiter)[0];
-			timeString = dateString.substr(dateStrings.date.length, dateString.length);
-		}
-	}
-	if (timeString) {
-		const token = patterns.timezone.exec(timeString);
-		if (token) {
-			dateStrings.time = timeString.replace(token[1], "");
-			dateStrings.timezone = token[1];
-		} else dateStrings.time = timeString;
-	}
-	return dateStrings;
-}
-function parseYear$1(dateString, additionalDigits) {
-	const regex = /* @__PURE__ */ new RegExp("^(?:(\\d{4}|[+-]\\d{" + (4 + additionalDigits) + "})|(\\d{2}|[+-]\\d{" + (2 + additionalDigits) + "})$)");
-	const captures = dateString.match(regex);
-	if (!captures) return {
-		year: NaN,
-		restDateString: ""
-	};
-	const year = captures[1] ? parseInt(captures[1]) : null;
-	const century = captures[2] ? parseInt(captures[2]) : null;
-	return {
-		year: century === null ? year : century * 100,
-		restDateString: dateString.slice((captures[1] || captures[2]).length)
-	};
-}
-function parseDate(dateString, year) {
-	if (year === null) return /* @__PURE__ */ new Date(NaN);
-	const captures = dateString.match(dateRegex);
-	if (!captures) return /* @__PURE__ */ new Date(NaN);
-	const isWeekDate = !!captures[4];
-	const dayOfYear = parseDateUnit(captures[1]);
-	const month = parseDateUnit(captures[2]) - 1;
-	const day = parseDateUnit(captures[3]);
-	const week = parseDateUnit(captures[4]);
-	const dayOfWeek = parseDateUnit(captures[5]) - 1;
-	if (isWeekDate) {
-		if (!validateWeekDate(year, week, dayOfWeek)) return /* @__PURE__ */ new Date(NaN);
-		return dayOfISOWeekYear(year, week, dayOfWeek);
-	} else {
-		const date$3 = /* @__PURE__ */ new Date(0);
-		if (!validateDate(year, month, day) || !validateDayOfYearDate(year, dayOfYear)) return /* @__PURE__ */ new Date(NaN);
-		date$3.setUTCFullYear(year, month, Math.max(dayOfYear, day));
-		return date$3;
-	}
-}
-function parseDateUnit(value) {
-	return value ? parseInt(value) : 1;
-}
-function parseTime(timeString) {
-	const captures = timeString.match(timeRegex);
-	if (!captures) return NaN;
-	const hours = parseTimeUnit(captures[1]);
-	const minutes = parseTimeUnit(captures[2]);
-	const seconds$1 = parseTimeUnit(captures[3]);
-	if (!validateTime(hours, minutes, seconds$1)) return NaN;
-	return hours * millisecondsInHour + minutes * millisecondsInMinute + seconds$1 * 1e3;
-}
-function parseTimeUnit(value) {
-	return value && parseFloat(value.replace(",", ".")) || 0;
-}
-function parseTimezone(timezoneString) {
-	if (timezoneString === "Z") return 0;
-	const captures = timezoneString.match(timezoneRegex);
-	if (!captures) return 0;
-	const sign$1 = captures[1] === "+" ? -1 : 1;
-	const hours = parseInt(captures[2]);
-	const minutes = captures[3] && parseInt(captures[3]) || 0;
-	if (!validateTimezone(hours, minutes)) return NaN;
-	return sign$1 * (hours * millisecondsInHour + minutes * millisecondsInMinute);
-}
-function dayOfISOWeekYear(isoWeekYear, week, day) {
-	const date$3 = /* @__PURE__ */ new Date(0);
-	date$3.setUTCFullYear(isoWeekYear, 0, 4);
-	const fourthOfJanuaryDay = date$3.getUTCDay() || 7;
-	const diff = (week - 1) * 7 + day + 1 - fourthOfJanuaryDay;
-	date$3.setUTCDate(date$3.getUTCDate() + diff);
-	return date$3;
-}
-var daysInMonths = [
-	31,
-	null,
-	31,
-	30,
-	31,
-	30,
-	31,
-	31,
-	30,
-	31,
-	30,
-	31
-];
-function isLeapYearIndex(year) {
-	return year % 400 === 0 || year % 4 === 0 && year % 100 !== 0;
-}
-function validateDate(year, month, date$3) {
-	return month >= 0 && month <= 11 && date$3 >= 1 && date$3 <= (daysInMonths[month] || (isLeapYearIndex(year) ? 29 : 28));
-}
-function validateDayOfYearDate(year, dayOfYear) {
-	return dayOfYear >= 1 && dayOfYear <= (isLeapYearIndex(year) ? 366 : 365);
-}
-function validateWeekDate(_year, week, day) {
-	return week >= 1 && week <= 53 && day >= 0 && day <= 6;
-}
-function validateTime(hours, minutes, seconds$1) {
-	if (hours === 24) return minutes === 0 && seconds$1 === 0;
-	return seconds$1 >= 0 && seconds$1 < 60 && minutes >= 0 && minutes < 60 && hours >= 0 && hours < 25;
-}
-function validateTimezone(_hours, minutes) {
-	return minutes >= 0 && minutes <= 59;
-}
-function subMonths(date$3, amount, options$1) {
-	return addMonths(date$3, -amount, options$1);
-}
-var T1_ID = "a1111111-1111-4111-a111-111111111111";
-var T2_ID = "a2222222-2222-4222-a222-222222222222";
-var T3_ID = "a3333333-3333-4333-a333-333333333333";
-var P1_ID = "b1111111-1111-4111-b111-111111111111";
-var P2_ID = "b2222222-2222-4222-b222-222222222222";
-var P3_ID = "b3333333-3333-4333-b333-333333333333";
-var O1_ID = "c1111111-1111-4111-c111-111111111111";
-var O2_ID = "c2222222-2222-4222-c222-222222222222";
-var U1_ID = "f1111111-1111-4111-f111-111111111111";
-var U2_ID = "f2222222-2222-4222-f222-222222222222";
-const mockUsers = [
-	{
-		id: U1_ID,
-		name: "Carlos Master",
-		email: "carlos@platform.com",
-		role: "MASTER",
-		avatarUrl: "https://img.usecurling.com/ppl/medium?gender=male&seed=1"
-	},
-	{
-		id: U2_ID,
-		name: "Ana Vestra",
-		email: "ana@vestra.com",
-		role: "ADMIN",
-		tenantId: T1_ID,
-		avatarUrl: "https://img.usecurling.com/ppl/medium?gender=female&seed=2"
-	},
-	{
-		id: "f3333333-3333-4333-f333-333333333333",
-		name: "Roberto Proprietário",
-		email: "roberto@gmail.com",
-		role: "OWNER",
-		avatarUrl: "https://img.usecurling.com/ppl/medium?gender=male&seed=3"
-	}
-];
-const mockTenants = [
-	{
-		id: T1_ID,
-		name: "VESTRA",
-		cnpj: "12.345.678/0001-90",
-		status: "ACTIVE",
-		createdAt: "2025-01-10",
-		projectCount: 2,
-		logoUrl: "https://img.usecurling.com/i?q=building&color=blue",
-		primaryColor: "#0f172a"
-	},
-	{
-		id: T2_ID,
-		name: "Beta Incorporadora",
-		cnpj: "98.765.432/0001-10",
-		status: "ACTIVE",
-		createdAt: "2025-02-15",
-		projectCount: 1,
-		logoUrl: "https://img.usecurling.com/i?q=crane&color=orange",
-		primaryColor: "#EAB308"
-	},
-	{
-		id: T3_ID,
-		name: "Gamma Engenharia",
-		cnpj: "45.123.789/0001-55",
-		status: "SUSPENDED",
-		createdAt: "2025-03-01",
-		projectCount: 0,
-		logoUrl: "https://img.usecurling.com/i?q=helmet&color=gray",
-		primaryColor: "#64748B"
-	}
-];
-const mockProjects = [
-	{
-		id: P1_ID,
-		tenantId: T1_ID,
-		name: "Residencial Horizonte",
-		city: "São Paulo",
-		state: "SP",
-		manager: "Eng. Ricardo Silva",
-		address: "Av. Paulista, 1000, São Paulo",
-		totalUnits: 40,
-		deliveredUnits: 0,
-		openIssues: 5,
-		completionPercentage: 75,
-		deliveryDate: "2026-12-01",
-		status: "CONSTRUCTION",
-		phase: "EXECUTION",
-		imageUrl: "https://img.usecurling.com/p/400/300?q=modern%20apartment%20building"
-	},
-	{
-		id: P2_ID,
-		tenantId: T1_ID,
-		name: "Torre Crystal",
-		city: "São Paulo",
-		state: "SP",
-		manager: "Arq. Julia Santos",
-		address: "Rua Oscar Freire, 500, São Paulo",
-		totalUnits: 20,
-		deliveredUnits: 0,
-		openIssues: 0,
-		completionPercentage: 10,
-		deliveryDate: "2027-06-01",
-		status: "PLANNING",
-		phase: "PRE_SALES",
-		imageUrl: "https://img.usecurling.com/p/400/300?q=luxury%20condo"
-	},
-	{
-		id: P3_ID,
-		tenantId: T2_ID,
-		name: "Vila Verde",
-		city: "Campinas",
-		state: "SP",
-		manager: "Eng. Pedro Costa",
-		address: "Rua das Flores, 20, Campinas",
-		totalUnits: 100,
-		deliveredUnits: 100,
-		openIssues: 2,
-		completionPercentage: 100,
-		deliveryDate: "2025-10-01",
-		status: "DELIVERED",
-		phase: "POST_DELIVERY",
-		imageUrl: "https://img.usecurling.com/p/400/300?q=suburban%20houses"
-	}
-];
-const mockUnits = [
-	{
-		id: "d1111111-1111-4111-d111-111111111111",
-		projectId: P1_ID,
-		block: "A",
-		number: "101",
-		floor: "1º",
-		bedrooms: 2,
-		bathrooms: 1,
-		typology: "2D",
-		area: 65,
-		price: 45e4,
-		status: "SOLD",
-		ownerId: O1_ID
-	},
-	{
-		id: "d2222222-2222-4222-d222-222222222222",
-		projectId: P1_ID,
-		block: "A",
-		number: "102",
-		floor: "1º",
-		bedrooms: 2,
-		bathrooms: 1,
-		typology: "2D",
-		area: 65,
-		price: 45e4,
-		status: "AVAILABLE"
-	},
-	{
-		id: "d3333333-3333-4333-d333-333333333333",
-		projectId: P1_ID,
-		block: "A",
-		number: "103",
-		floor: "1º",
-		bedrooms: 3,
-		bathrooms: 2,
-		typology: "3D",
-		area: 85,
-		price: 65e4,
-		status: "RESERVED"
-	},
-	{
-		id: "d4444444-4444-4444-d444-444444444444",
-		projectId: P1_ID,
-		block: "B",
-		number: "201",
-		floor: "2º",
-		bedrooms: 2,
-		bathrooms: 1,
-		typology: "2D",
-		area: 65,
-		price: 46e4,
-		status: "AVAILABLE"
-	},
-	{
-		id: "d5555555-5555-5555-d555-555555555555",
-		projectId: P1_ID,
-		block: "B",
-		number: "202",
-		floor: "2º",
-		bedrooms: 1,
-		bathrooms: 1,
-		typology: "Studio",
-		area: 40,
-		price: 3e5,
-		status: "SOLD",
-		ownerId: O2_ID
-	},
-	{
-		id: "d6666666-6666-6666-d666-666666666666",
-		projectId: P2_ID,
-		block: "Unico",
-		number: "10",
-		floor: "10º",
-		bedrooms: 4,
-		bathrooms: 3,
-		typology: "4D",
-		area: 150,
-		price: 15e5,
-		status: "AVAILABLE"
-	},
-	{
-		id: "d7777777-7777-7777-d777-777777777777",
-		projectId: P2_ID,
-		block: "Unico",
-		number: "11",
-		floor: "11º",
-		bedrooms: 4,
-		bathrooms: 3,
-		typology: "4D",
-		area: 150,
-		price: 155e4,
-		status: "AVAILABLE"
-	}
-];
-const mockOwners = [{
-	id: O1_ID,
-	name: "Roberto Proprietário",
-	email: "roberto@gmail.com",
-	phone: "(11) 99999-9999",
-	document: "123.456.789-00",
-	unitsOwned: ["d1111111-1111-4111-d111-111111111111"]
-}, {
-	id: O2_ID,
-	name: "Fernanda Lima",
-	email: "fernanda@gmail.com",
-	phone: "(11) 98888-8888",
-	document: "321.654.987-00",
-	unitsOwned: ["d5555555-5555-5555-d555-555555555555"]
-}];
-const mockAuditLogs = [
-	{
-		id: "11111111-1111-4111-1111-111111111111",
-		userId: U1_ID,
-		userName: "Carlos Master",
-		action: "CREATE",
-		entityType: "TENANT",
-		entityId: T1_ID,
-		details: "Created tenant Alpha Construções",
-		timestamp: subDays(/* @__PURE__ */ new Date(), 2).toISOString()
-	},
-	{
-		id: "22222222-2222-4222-2222-222222222222",
-		userId: U2_ID,
-		userName: "Ana Vestra",
-		action: "UPDATE",
-		entityType: "UNIT",
-		entityId: "d1111111-1111-4111-d111-111111111111",
-		details: "Status changed from AVAILABLE to SOLD",
-		timestamp: subDays(/* @__PURE__ */ new Date(), 1).toISOString()
-	},
-	{
-		id: "33333333-3333-4333-3333-333333333333",
-		userId: U2_ID,
-		userName: "Ana Vestra",
-		action: "UPDATE",
-		entityType: "PROJECT",
-		entityId: P1_ID,
-		details: "Completion updated to 75%",
-		timestamp: (/* @__PURE__ */ new Date()).toISOString()
-	}
-];
-const mockLeads = [{
-	id: "g1111111-1111-4111-g111-111111111111",
-	companyType: "construtora",
-	businessName: "Delta Construções",
-	cnpj: "55.444.333/0001-22",
-	managerName: "José da Silva",
-	email: "jose@deltaconst.com.br",
-	whatsapp: "(11) 98765-4321",
-	location: "São Paulo - SP",
-	unitsPerMonth: "51-200",
-	plan: "pro",
-	status: "NEW",
-	createdAt: subDays(/* @__PURE__ */ new Date(), 3).toISOString()
-}];
-const mockDocuments = [
-	{
-		id: "e1111111-1111-4111-e111-111111111111",
-		projectId: P1_ID,
-		name: "Planta Baixa - Bloco A.pdf",
-		category: "Projetos",
-		version: 1,
-		tags: ["arquitetura", "bloco A"],
-		isVisibleToOwners: true,
-		url: "#",
-		createdAt: subMonths(/* @__PURE__ */ new Date(), 2).toISOString(),
-		createdBy: "Ana Vestra",
-		size: "2.4 MB",
-		type: "pdf"
-	},
-	{
-		id: "e2222222-2222-4222-e222-222222222222",
-		projectId: P1_ID,
-		name: "Alvará de Construção.pdf",
-		category: "Habite-se",
-		version: 1,
-		tags: ["legal", "prefeitura"],
-		isVisibleToOwners: false,
-		url: "#",
-		createdAt: subMonths(/* @__PURE__ */ new Date(), 5).toISOString(),
-		createdBy: "Ana Vestra",
-		size: "1.1 MB",
-		type: "pdf"
-	},
-	{
-		id: "e3333333-3333-4333-e333-333333333333",
-		projectId: P1_ID,
-		name: "Manual do Proprietário.pdf",
-		category: "Manuais",
-		version: 2,
-		tags: ["entrega", "manual"],
-		isVisibleToOwners: true,
-		url: "#",
-		createdAt: subDays(/* @__PURE__ */ new Date(), 10).toISOString(),
-		createdBy: "Ana Vestra",
-		size: "5.6 MB",
-		type: "pdf"
-	}
-];
-const mockDocumentLogs = [{
-	id: "dl1",
-	documentId: "e1111111-1111-4111-e111-111111111111",
-	action: "UPLOAD",
-	userId: U2_ID,
-	userName: "Ana Vestra",
-	timestamp: subMonths(/* @__PURE__ */ new Date(), 2).toISOString(),
-	details: "Initial upload"
-}, {
-	id: "dl2",
-	documentId: "e1111111-1111-4111-e111-111111111111",
-	action: "VIEW",
-	userId: U1_ID,
-	userName: "Carlos Master",
-	timestamp: subDays(/* @__PURE__ */ new Date(), 15).toISOString()
-}];
 var __assign = function() {
 	__assign = Object.assign || function __assign$1(t$1) {
 		for (var s$3, i$2 = 1, n$1 = arguments.length; i$2 < n$1; i$2++) {
@@ -33955,6 +32062,1932 @@ const supabase = createClient("https://rkznghwrnykdzjsxnrjn.supabase.co", "eyJhb
 	persistSession: true,
 	autoRefreshToken: true
 } });
+var AuthContext = (0, import_react.createContext)(void 0);
+const useAuth = () => {
+	const context = (0, import_react.useContext)(AuthContext);
+	if (!context) throw new Error("useAuth must be used within an AuthProvider");
+	return context;
+};
+const AuthProvider = ({ children }) => {
+	const [user, setUser] = (0, import_react.useState)(null);
+	const [session, setSession] = (0, import_react.useState)(null);
+	const [loading, setLoading] = (0, import_react.useState)(true);
+	(0, import_react.useEffect)(() => {
+		const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session$1) => {
+			setSession(session$1);
+			setUser(session$1?.user ?? null);
+			setLoading(false);
+		});
+		supabase.auth.getSession().then(({ data: { session: session$1 } }) => {
+			setSession(session$1);
+			setUser(session$1?.user ?? null);
+			setLoading(false);
+		});
+		return () => subscription.unsubscribe();
+	}, []);
+	const signUp = async (email$1, password, metadata) => {
+		const { error } = await supabase.auth.signUp({
+			email: email$1,
+			password,
+			options: {
+				data: metadata,
+				emailRedirectTo: `${window.location.origin}/`
+			}
+		});
+		return { error };
+	};
+	const signIn = async (email$1, password) => {
+		const { error } = await supabase.auth.signInWithPassword({
+			email: email$1,
+			password
+		});
+		return { error };
+	};
+	const signOut = async () => {
+		const { error } = await supabase.auth.signOut();
+		return { error };
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthContext.Provider, {
+		value: {
+			user,
+			session,
+			signUp,
+			signIn,
+			signOut,
+			loading
+		},
+		children
+	});
+};
+const daysInYear = 365.2425;
+Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
+const millisecondsInWeek = 6048e5;
+const millisecondsInDay = 864e5;
+const millisecondsInMinute = 6e4;
+const millisecondsInHour = 36e5;
+const minutesInMonth = 43200;
+const minutesInDay = 1440;
+const secondsInDay = 3600 * 24;
+secondsInDay * 7;
+secondsInDay * daysInYear / 12 * 3;
+const constructFromSymbol = Symbol.for("constructDateFrom");
+function constructFrom(date$3, value) {
+	if (typeof date$3 === "function") return date$3(value);
+	if (date$3 && typeof date$3 === "object" && constructFromSymbol in date$3) return date$3[constructFromSymbol](value);
+	if (date$3 instanceof Date) return new date$3.constructor(value);
+	return new Date(value);
+}
+function toDate(argument, context) {
+	return constructFrom(context || argument, argument);
+}
+function addDays(date$3, amount, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	if (isNaN(amount)) return constructFrom(options$1?.in || date$3, NaN);
+	if (!amount) return _date;
+	_date.setDate(_date.getDate() + amount);
+	return _date;
+}
+function addMonths(date$3, amount, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	if (isNaN(amount)) return constructFrom(options$1?.in || date$3, NaN);
+	if (!amount) return _date;
+	const dayOfMonth = _date.getDate();
+	const endOfDesiredMonth = constructFrom(options$1?.in || date$3, _date.getTime());
+	endOfDesiredMonth.setMonth(_date.getMonth() + amount + 1, 0);
+	if (dayOfMonth >= endOfDesiredMonth.getDate()) return endOfDesiredMonth;
+	else {
+		_date.setFullYear(endOfDesiredMonth.getFullYear(), endOfDesiredMonth.getMonth(), dayOfMonth);
+		return _date;
+	}
+}
+var defaultOptions$1 = {};
+function getDefaultOptions() {
+	return defaultOptions$1;
+}
+function startOfWeek(date$3, options$1) {
+	const defaultOptions$2 = getDefaultOptions();
+	const weekStartsOn = options$1?.weekStartsOn ?? options$1?.locale?.options?.weekStartsOn ?? defaultOptions$2.weekStartsOn ?? defaultOptions$2.locale?.options?.weekStartsOn ?? 0;
+	const _date = toDate(date$3, options$1?.in);
+	const day = _date.getDay();
+	const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+	_date.setDate(_date.getDate() - diff);
+	_date.setHours(0, 0, 0, 0);
+	return _date;
+}
+function startOfISOWeek(date$3, options$1) {
+	return startOfWeek(date$3, {
+		...options$1,
+		weekStartsOn: 1
+	});
+}
+function getISOWeekYear(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	const year = _date.getFullYear();
+	const fourthOfJanuaryOfNextYear = constructFrom(_date, 0);
+	fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
+	fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
+	const startOfNextYear = startOfISOWeek(fourthOfJanuaryOfNextYear);
+	const fourthOfJanuaryOfThisYear = constructFrom(_date, 0);
+	fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
+	fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
+	const startOfThisYear = startOfISOWeek(fourthOfJanuaryOfThisYear);
+	if (_date.getTime() >= startOfNextYear.getTime()) return year + 1;
+	else if (_date.getTime() >= startOfThisYear.getTime()) return year;
+	else return year - 1;
+}
+function getTimezoneOffsetInMilliseconds(date$3) {
+	const _date = toDate(date$3);
+	const utcDate$1 = new Date(Date.UTC(_date.getFullYear(), _date.getMonth(), _date.getDate(), _date.getHours(), _date.getMinutes(), _date.getSeconds(), _date.getMilliseconds()));
+	utcDate$1.setUTCFullYear(_date.getFullYear());
+	return +date$3 - +utcDate$1;
+}
+function normalizeDates(context, ...dates) {
+	const normalize$1 = constructFrom.bind(null, context || dates.find((date$3) => typeof date$3 === "object"));
+	return dates.map(normalize$1);
+}
+function startOfDay(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	_date.setHours(0, 0, 0, 0);
+	return _date;
+}
+function differenceInCalendarDays(laterDate, earlierDate, options$1) {
+	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
+	const laterStartOfDay = startOfDay(laterDate_);
+	const earlierStartOfDay = startOfDay(earlierDate_);
+	const laterTimestamp = +laterStartOfDay - getTimezoneOffsetInMilliseconds(laterStartOfDay);
+	const earlierTimestamp = +earlierStartOfDay - getTimezoneOffsetInMilliseconds(earlierStartOfDay);
+	return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
+}
+function startOfISOWeekYear(date$3, options$1) {
+	const year = getISOWeekYear(date$3, options$1);
+	const fourthOfJanuary = constructFrom(options$1?.in || date$3, 0);
+	fourthOfJanuary.setFullYear(year, 0, 4);
+	fourthOfJanuary.setHours(0, 0, 0, 0);
+	return startOfISOWeek(fourthOfJanuary);
+}
+function compareAsc(dateLeft, dateRight) {
+	const diff = +toDate(dateLeft) - +toDate(dateRight);
+	if (diff < 0) return -1;
+	else if (diff > 0) return 1;
+	return diff;
+}
+function constructNow(date$3) {
+	return constructFrom(date$3, Date.now());
+}
+function isDate(value) {
+	return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
+}
+function isValid(date$3) {
+	return !(!isDate(date$3) && typeof date$3 !== "number" || isNaN(+toDate(date$3)));
+}
+function differenceInCalendarMonths(laterDate, earlierDate, options$1) {
+	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
+	const yearsDiff = laterDate_.getFullYear() - earlierDate_.getFullYear();
+	const monthsDiff = laterDate_.getMonth() - earlierDate_.getMonth();
+	return yearsDiff * 12 + monthsDiff;
+}
+function differenceInDays(laterDate, earlierDate, options$1) {
+	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, laterDate, earlierDate);
+	const sign$1 = compareLocalAsc(laterDate_, earlierDate_);
+	const difference = Math.abs(differenceInCalendarDays(laterDate_, earlierDate_));
+	laterDate_.setDate(laterDate_.getDate() - sign$1 * difference);
+	const result = sign$1 * (difference - Number(compareLocalAsc(laterDate_, earlierDate_) === -sign$1));
+	return result === 0 ? 0 : result;
+}
+function compareLocalAsc(laterDate, earlierDate) {
+	const diff = laterDate.getFullYear() - earlierDate.getFullYear() || laterDate.getMonth() - earlierDate.getMonth() || laterDate.getDate() - earlierDate.getDate() || laterDate.getHours() - earlierDate.getHours() || laterDate.getMinutes() - earlierDate.getMinutes() || laterDate.getSeconds() - earlierDate.getSeconds() || laterDate.getMilliseconds() - earlierDate.getMilliseconds();
+	if (diff < 0) return -1;
+	if (diff > 0) return 1;
+	return diff;
+}
+function getRoundingMethod(method) {
+	return (number$5) => {
+		const result = (method ? Math[method] : Math.trunc)(number$5);
+		return result === 0 ? 0 : result;
+	};
+}
+function differenceInMilliseconds(laterDate, earlierDate) {
+	return +toDate(laterDate) - +toDate(earlierDate);
+}
+function endOfDay(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	_date.setHours(23, 59, 59, 999);
+	return _date;
+}
+function endOfMonth(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	const month = _date.getMonth();
+	_date.setFullYear(_date.getFullYear(), month + 1, 0);
+	_date.setHours(23, 59, 59, 999);
+	return _date;
+}
+function isLastDayOfMonth(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	return +endOfDay(_date, options$1) === +endOfMonth(_date, options$1);
+}
+function differenceInMonths(laterDate, earlierDate, options$1) {
+	const [laterDate_, workingLaterDate, earlierDate_] = normalizeDates(options$1?.in, laterDate, laterDate, earlierDate);
+	const sign$1 = compareAsc(workingLaterDate, earlierDate_);
+	const difference = Math.abs(differenceInCalendarMonths(workingLaterDate, earlierDate_));
+	if (difference < 1) return 0;
+	if (workingLaterDate.getMonth() === 1 && workingLaterDate.getDate() > 27) workingLaterDate.setDate(30);
+	workingLaterDate.setMonth(workingLaterDate.getMonth() - sign$1 * difference);
+	let isLastMonthNotFull = compareAsc(workingLaterDate, earlierDate_) === -sign$1;
+	if (isLastDayOfMonth(laterDate_) && difference === 1 && compareAsc(laterDate_, earlierDate_) === 1) isLastMonthNotFull = false;
+	const result = sign$1 * (difference - +isLastMonthNotFull);
+	return result === 0 ? 0 : result;
+}
+function differenceInSeconds(laterDate, earlierDate, options$1) {
+	const diff = differenceInMilliseconds(laterDate, earlierDate) / 1e3;
+	return getRoundingMethod(options$1?.roundingMethod)(diff);
+}
+function startOfYear(date$3, options$1) {
+	const date_ = toDate(date$3, options$1?.in);
+	date_.setFullYear(date_.getFullYear(), 0, 1);
+	date_.setHours(0, 0, 0, 0);
+	return date_;
+}
+var formatDistanceLocale$1 = {
+	lessThanXSeconds: {
+		one: "less than a second",
+		other: "less than {{count}} seconds"
+	},
+	xSeconds: {
+		one: "1 second",
+		other: "{{count}} seconds"
+	},
+	halfAMinute: "half a minute",
+	lessThanXMinutes: {
+		one: "less than a minute",
+		other: "less than {{count}} minutes"
+	},
+	xMinutes: {
+		one: "1 minute",
+		other: "{{count}} minutes"
+	},
+	aboutXHours: {
+		one: "about 1 hour",
+		other: "about {{count}} hours"
+	},
+	xHours: {
+		one: "1 hour",
+		other: "{{count}} hours"
+	},
+	xDays: {
+		one: "1 day",
+		other: "{{count}} days"
+	},
+	aboutXWeeks: {
+		one: "about 1 week",
+		other: "about {{count}} weeks"
+	},
+	xWeeks: {
+		one: "1 week",
+		other: "{{count}} weeks"
+	},
+	aboutXMonths: {
+		one: "about 1 month",
+		other: "about {{count}} months"
+	},
+	xMonths: {
+		one: "1 month",
+		other: "{{count}} months"
+	},
+	aboutXYears: {
+		one: "about 1 year",
+		other: "about {{count}} years"
+	},
+	xYears: {
+		one: "1 year",
+		other: "{{count}} years"
+	},
+	overXYears: {
+		one: "over 1 year",
+		other: "over {{count}} years"
+	},
+	almostXYears: {
+		one: "almost 1 year",
+		other: "almost {{count}} years"
+	}
+};
+const formatDistance$2 = (token, count$3, options$1) => {
+	let result;
+	const tokenValue = formatDistanceLocale$1[token];
+	if (typeof tokenValue === "string") result = tokenValue;
+	else if (count$3 === 1) result = tokenValue.one;
+	else result = tokenValue.other.replace("{{count}}", count$3.toString());
+	if (options$1?.addSuffix) if (options$1.comparison && options$1.comparison > 0) return "in " + result;
+	else return result + " ago";
+	return result;
+};
+function buildFormatLongFn(args) {
+	return (options$1 = {}) => {
+		const width = options$1.width ? String(options$1.width) : args.defaultWidth;
+		return args.formats[width] || args.formats[args.defaultWidth];
+	};
+}
+const formatLong$1 = {
+	date: buildFormatLongFn({
+		formats: {
+			full: "EEEE, MMMM do, y",
+			long: "MMMM do, y",
+			medium: "MMM d, y",
+			short: "MM/dd/yyyy"
+		},
+		defaultWidth: "full"
+	}),
+	time: buildFormatLongFn({
+		formats: {
+			full: "h:mm:ss a zzzz",
+			long: "h:mm:ss a z",
+			medium: "h:mm:ss a",
+			short: "h:mm a"
+		},
+		defaultWidth: "full"
+	}),
+	dateTime: buildFormatLongFn({
+		formats: {
+			full: "{{date}} 'at' {{time}}",
+			long: "{{date}} 'at' {{time}}",
+			medium: "{{date}}, {{time}}",
+			short: "{{date}}, {{time}}"
+		},
+		defaultWidth: "full"
+	})
+};
+var formatRelativeLocale$1 = {
+	lastWeek: "'last' eeee 'at' p",
+	yesterday: "'yesterday at' p",
+	today: "'today at' p",
+	tomorrow: "'tomorrow at' p",
+	nextWeek: "eeee 'at' p",
+	other: "P"
+};
+const formatRelative$1 = (token, _date, _baseDate, _options) => formatRelativeLocale$1[token];
+function buildLocalizeFn(args) {
+	return (value, options$1) => {
+		const context = options$1?.context ? String(options$1.context) : "standalone";
+		let valuesArray;
+		if (context === "formatting" && args.formattingValues) {
+			const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
+			const width = options$1?.width ? String(options$1.width) : defaultWidth;
+			valuesArray = args.formattingValues[width] || args.formattingValues[defaultWidth];
+		} else {
+			const defaultWidth = args.defaultWidth;
+			const width = options$1?.width ? String(options$1.width) : args.defaultWidth;
+			valuesArray = args.values[width] || args.values[defaultWidth];
+		}
+		const index$1 = args.argumentCallback ? args.argumentCallback(value) : value;
+		return valuesArray[index$1];
+	};
+}
+var eraValues$1 = {
+	narrow: ["B", "A"],
+	abbreviated: ["BC", "AD"],
+	wide: ["Before Christ", "Anno Domini"]
+};
+var quarterValues$1 = {
+	narrow: [
+		"1",
+		"2",
+		"3",
+		"4"
+	],
+	abbreviated: [
+		"Q1",
+		"Q2",
+		"Q3",
+		"Q4"
+	],
+	wide: [
+		"1st quarter",
+		"2nd quarter",
+		"3rd quarter",
+		"4th quarter"
+	]
+};
+var monthValues$1 = {
+	narrow: [
+		"J",
+		"F",
+		"M",
+		"A",
+		"M",
+		"J",
+		"J",
+		"A",
+		"S",
+		"O",
+		"N",
+		"D"
+	],
+	abbreviated: [
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	],
+	wide: [
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"
+	]
+};
+var dayValues$1 = {
+	narrow: [
+		"S",
+		"M",
+		"T",
+		"W",
+		"T",
+		"F",
+		"S"
+	],
+	short: [
+		"Su",
+		"Mo",
+		"Tu",
+		"We",
+		"Th",
+		"Fr",
+		"Sa"
+	],
+	abbreviated: [
+		"Sun",
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat"
+	],
+	wide: [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday"
+	]
+};
+var dayPeriodValues$1 = {
+	narrow: {
+		am: "a",
+		pm: "p",
+		midnight: "mi",
+		noon: "n",
+		morning: "morning",
+		afternoon: "afternoon",
+		evening: "evening",
+		night: "night"
+	},
+	abbreviated: {
+		am: "AM",
+		pm: "PM",
+		midnight: "midnight",
+		noon: "noon",
+		morning: "morning",
+		afternoon: "afternoon",
+		evening: "evening",
+		night: "night"
+	},
+	wide: {
+		am: "a.m.",
+		pm: "p.m.",
+		midnight: "midnight",
+		noon: "noon",
+		morning: "morning",
+		afternoon: "afternoon",
+		evening: "evening",
+		night: "night"
+	}
+};
+var formattingDayPeriodValues$1 = {
+	narrow: {
+		am: "a",
+		pm: "p",
+		midnight: "mi",
+		noon: "n",
+		morning: "in the morning",
+		afternoon: "in the afternoon",
+		evening: "in the evening",
+		night: "at night"
+	},
+	abbreviated: {
+		am: "AM",
+		pm: "PM",
+		midnight: "midnight",
+		noon: "noon",
+		morning: "in the morning",
+		afternoon: "in the afternoon",
+		evening: "in the evening",
+		night: "at night"
+	},
+	wide: {
+		am: "a.m.",
+		pm: "p.m.",
+		midnight: "midnight",
+		noon: "noon",
+		morning: "in the morning",
+		afternoon: "in the afternoon",
+		evening: "in the evening",
+		night: "at night"
+	}
+};
+var ordinalNumber$1 = (dirtyNumber, _options) => {
+	const number$5 = Number(dirtyNumber);
+	const rem100 = number$5 % 100;
+	if (rem100 > 20 || rem100 < 10) switch (rem100 % 10) {
+		case 1: return number$5 + "st";
+		case 2: return number$5 + "nd";
+		case 3: return number$5 + "rd";
+	}
+	return number$5 + "th";
+};
+const localize$1 = {
+	ordinalNumber: ordinalNumber$1,
+	era: buildLocalizeFn({
+		values: eraValues$1,
+		defaultWidth: "wide"
+	}),
+	quarter: buildLocalizeFn({
+		values: quarterValues$1,
+		defaultWidth: "wide",
+		argumentCallback: (quarter) => quarter - 1
+	}),
+	month: buildLocalizeFn({
+		values: monthValues$1,
+		defaultWidth: "wide"
+	}),
+	day: buildLocalizeFn({
+		values: dayValues$1,
+		defaultWidth: "wide"
+	}),
+	dayPeriod: buildLocalizeFn({
+		values: dayPeriodValues$1,
+		defaultWidth: "wide",
+		formattingValues: formattingDayPeriodValues$1,
+		defaultFormattingWidth: "wide"
+	})
+};
+function buildMatchFn(args) {
+	return (string$2, options$1 = {}) => {
+		const width = options$1.width;
+		const matchPattern = width && args.matchPatterns[width] || args.matchPatterns[args.defaultMatchWidth];
+		const matchResult = string$2.match(matchPattern);
+		if (!matchResult) return null;
+		const matchedString = matchResult[0];
+		const parsePatterns = width && args.parsePatterns[width] || args.parsePatterns[args.defaultParseWidth];
+		const key = Array.isArray(parsePatterns) ? findIndex$1(parsePatterns, (pattern) => pattern.test(matchedString)) : findKey(parsePatterns, (pattern) => pattern.test(matchedString));
+		let value;
+		value = args.valueCallback ? args.valueCallback(key) : key;
+		value = options$1.valueCallback ? options$1.valueCallback(value) : value;
+		const rest = string$2.slice(matchedString.length);
+		return {
+			value,
+			rest
+		};
+	};
+}
+function findKey(object$1, predicate) {
+	for (const key in object$1) if (Object.prototype.hasOwnProperty.call(object$1, key) && predicate(object$1[key])) return key;
+}
+function findIndex$1(array$1, predicate) {
+	for (let key = 0; key < array$1.length; key++) if (predicate(array$1[key])) return key;
+}
+function buildMatchPatternFn(args) {
+	return (string$2, options$1 = {}) => {
+		const matchResult = string$2.match(args.matchPattern);
+		if (!matchResult) return null;
+		const matchedString = matchResult[0];
+		const parseResult = string$2.match(args.parsePattern);
+		if (!parseResult) return null;
+		let value = args.valueCallback ? args.valueCallback(parseResult[0]) : parseResult[0];
+		value = options$1.valueCallback ? options$1.valueCallback(value) : value;
+		const rest = string$2.slice(matchedString.length);
+		return {
+			value,
+			rest
+		};
+	};
+}
+const enUS = {
+	code: "en-US",
+	formatDistance: formatDistance$2,
+	formatLong: formatLong$1,
+	formatRelative: formatRelative$1,
+	localize: localize$1,
+	match: {
+		ordinalNumber: buildMatchPatternFn({
+			matchPattern: /^(\d+)(th|st|nd|rd)?/i,
+			parsePattern: /\d+/i,
+			valueCallback: (value) => parseInt(value, 10)
+		}),
+		era: buildMatchFn({
+			matchPatterns: {
+				narrow: /^(b|a)/i,
+				abbreviated: /^(b\.?\s?c\.?|b\.?\s?c\.?\s?e\.?|a\.?\s?d\.?|c\.?\s?e\.?)/i,
+				wide: /^(before christ|before common era|anno domini|common era)/i
+			},
+			defaultMatchWidth: "wide",
+			parsePatterns: { any: [/^b/i, /^(a|c)/i] },
+			defaultParseWidth: "any"
+		}),
+		quarter: buildMatchFn({
+			matchPatterns: {
+				narrow: /^[1234]/i,
+				abbreviated: /^q[1234]/i,
+				wide: /^[1234](th|st|nd|rd)? quarter/i
+			},
+			defaultMatchWidth: "wide",
+			parsePatterns: { any: [
+				/1/i,
+				/2/i,
+				/3/i,
+				/4/i
+			] },
+			defaultParseWidth: "any",
+			valueCallback: (index$1) => index$1 + 1
+		}),
+		month: buildMatchFn({
+			matchPatterns: {
+				narrow: /^[jfmasond]/i,
+				abbreviated: /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,
+				wide: /^(january|february|march|april|may|june|july|august|september|october|november|december)/i
+			},
+			defaultMatchWidth: "wide",
+			parsePatterns: {
+				narrow: [
+					/^j/i,
+					/^f/i,
+					/^m/i,
+					/^a/i,
+					/^m/i,
+					/^j/i,
+					/^j/i,
+					/^a/i,
+					/^s/i,
+					/^o/i,
+					/^n/i,
+					/^d/i
+				],
+				any: [
+					/^ja/i,
+					/^f/i,
+					/^mar/i,
+					/^ap/i,
+					/^may/i,
+					/^jun/i,
+					/^jul/i,
+					/^au/i,
+					/^s/i,
+					/^o/i,
+					/^n/i,
+					/^d/i
+				]
+			},
+			defaultParseWidth: "any"
+		}),
+		day: buildMatchFn({
+			matchPatterns: {
+				narrow: /^[smtwf]/i,
+				short: /^(su|mo|tu|we|th|fr|sa)/i,
+				abbreviated: /^(sun|mon|tue|wed|thu|fri|sat)/i,
+				wide: /^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i
+			},
+			defaultMatchWidth: "wide",
+			parsePatterns: {
+				narrow: [
+					/^s/i,
+					/^m/i,
+					/^t/i,
+					/^w/i,
+					/^t/i,
+					/^f/i,
+					/^s/i
+				],
+				any: [
+					/^su/i,
+					/^m/i,
+					/^tu/i,
+					/^w/i,
+					/^th/i,
+					/^f/i,
+					/^sa/i
+				]
+			},
+			defaultParseWidth: "any"
+		}),
+		dayPeriod: buildMatchFn({
+			matchPatterns: {
+				narrow: /^(a|p|mi|n|(in the|at) (morning|afternoon|evening|night))/i,
+				any: /^([ap]\.?\s?m\.?|midnight|noon|(in the|at) (morning|afternoon|evening|night))/i
+			},
+			defaultMatchWidth: "any",
+			parsePatterns: { any: {
+				am: /^a/i,
+				pm: /^p/i,
+				midnight: /^mi/i,
+				noon: /^no/i,
+				morning: /morning/i,
+				afternoon: /afternoon/i,
+				evening: /evening/i,
+				night: /night/i
+			} },
+			defaultParseWidth: "any"
+		})
+	},
+	options: {
+		weekStartsOn: 0,
+		firstWeekContainsDate: 1
+	}
+};
+function getDayOfYear(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	return differenceInCalendarDays(_date, startOfYear(_date)) + 1;
+}
+function getISOWeek(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
+	return Math.round(diff / millisecondsInWeek) + 1;
+}
+function getWeekYear(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	const year = _date.getFullYear();
+	const defaultOptions$2 = getDefaultOptions();
+	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
+	const firstWeekOfNextYear = constructFrom(options$1?.in || date$3, 0);
+	firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
+	firstWeekOfNextYear.setHours(0, 0, 0, 0);
+	const startOfNextYear = startOfWeek(firstWeekOfNextYear, options$1);
+	const firstWeekOfThisYear = constructFrom(options$1?.in || date$3, 0);
+	firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
+	firstWeekOfThisYear.setHours(0, 0, 0, 0);
+	const startOfThisYear = startOfWeek(firstWeekOfThisYear, options$1);
+	if (+_date >= +startOfNextYear) return year + 1;
+	else if (+_date >= +startOfThisYear) return year;
+	else return year - 1;
+}
+function startOfWeekYear(date$3, options$1) {
+	const defaultOptions$2 = getDefaultOptions();
+	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
+	const year = getWeekYear(date$3, options$1);
+	const firstWeek = constructFrom(options$1?.in || date$3, 0);
+	firstWeek.setFullYear(year, 0, firstWeekContainsDate);
+	firstWeek.setHours(0, 0, 0, 0);
+	return startOfWeek(firstWeek, options$1);
+}
+function getWeek(date$3, options$1) {
+	const _date = toDate(date$3, options$1?.in);
+	const diff = +startOfWeek(_date, options$1) - +startOfWeekYear(_date, options$1);
+	return Math.round(diff / millisecondsInWeek) + 1;
+}
+function addLeadingZeros(number$5, targetLength) {
+	return (number$5 < 0 ? "-" : "") + Math.abs(number$5).toString().padStart(targetLength, "0");
+}
+const lightFormatters = {
+	y(date$3, token) {
+		const signedYear = date$3.getFullYear();
+		const year = signedYear > 0 ? signedYear : 1 - signedYear;
+		return addLeadingZeros(token === "yy" ? year % 100 : year, token.length);
+	},
+	M(date$3, token) {
+		const month = date$3.getMonth();
+		return token === "M" ? String(month + 1) : addLeadingZeros(month + 1, 2);
+	},
+	d(date$3, token) {
+		return addLeadingZeros(date$3.getDate(), token.length);
+	},
+	a(date$3, token) {
+		const dayPeriodEnumValue = date$3.getHours() / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "a":
+			case "aa": return dayPeriodEnumValue.toUpperCase();
+			case "aaa": return dayPeriodEnumValue;
+			case "aaaaa": return dayPeriodEnumValue[0];
+			case "aaaa":
+			default: return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
+		}
+	},
+	h(date$3, token) {
+		return addLeadingZeros(date$3.getHours() % 12 || 12, token.length);
+	},
+	H(date$3, token) {
+		return addLeadingZeros(date$3.getHours(), token.length);
+	},
+	m(date$3, token) {
+		return addLeadingZeros(date$3.getMinutes(), token.length);
+	},
+	s(date$3, token) {
+		return addLeadingZeros(date$3.getSeconds(), token.length);
+	},
+	S(date$3, token) {
+		const numberOfDigits = token.length;
+		const milliseconds$1 = date$3.getMilliseconds();
+		return addLeadingZeros(Math.trunc(milliseconds$1 * Math.pow(10, numberOfDigits - 3)), token.length);
+	}
+};
+var dayPeriodEnum = {
+	am: "am",
+	pm: "pm",
+	midnight: "midnight",
+	noon: "noon",
+	morning: "morning",
+	afternoon: "afternoon",
+	evening: "evening",
+	night: "night"
+};
+const formatters = {
+	G: function(date$3, token, localize$2) {
+		const era = date$3.getFullYear() > 0 ? 1 : 0;
+		switch (token) {
+			case "G":
+			case "GG":
+			case "GGG": return localize$2.era(era, { width: "abbreviated" });
+			case "GGGGG": return localize$2.era(era, { width: "narrow" });
+			case "GGGG":
+			default: return localize$2.era(era, { width: "wide" });
+		}
+	},
+	y: function(date$3, token, localize$2) {
+		if (token === "yo") {
+			const signedYear = date$3.getFullYear();
+			const year = signedYear > 0 ? signedYear : 1 - signedYear;
+			return localize$2.ordinalNumber(year, { unit: "year" });
+		}
+		return lightFormatters.y(date$3, token);
+	},
+	Y: function(date$3, token, localize$2, options$1) {
+		const signedWeekYear = getWeekYear(date$3, options$1);
+		const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
+		if (token === "YY") return addLeadingZeros(weekYear % 100, 2);
+		if (token === "Yo") return localize$2.ordinalNumber(weekYear, { unit: "year" });
+		return addLeadingZeros(weekYear, token.length);
+	},
+	R: function(date$3, token) {
+		return addLeadingZeros(getISOWeekYear(date$3), token.length);
+	},
+	u: function(date$3, token) {
+		return addLeadingZeros(date$3.getFullYear(), token.length);
+	},
+	Q: function(date$3, token, localize$2) {
+		const quarter = Math.ceil((date$3.getMonth() + 1) / 3);
+		switch (token) {
+			case "Q": return String(quarter);
+			case "QQ": return addLeadingZeros(quarter, 2);
+			case "Qo": return localize$2.ordinalNumber(quarter, { unit: "quarter" });
+			case "QQQ": return localize$2.quarter(quarter, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "QQQQQ": return localize$2.quarter(quarter, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "QQQQ":
+			default: return localize$2.quarter(quarter, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	q: function(date$3, token, localize$2) {
+		const quarter = Math.ceil((date$3.getMonth() + 1) / 3);
+		switch (token) {
+			case "q": return String(quarter);
+			case "qq": return addLeadingZeros(quarter, 2);
+			case "qo": return localize$2.ordinalNumber(quarter, { unit: "quarter" });
+			case "qqq": return localize$2.quarter(quarter, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "qqqqq": return localize$2.quarter(quarter, {
+				width: "narrow",
+				context: "standalone"
+			});
+			case "qqqq":
+			default: return localize$2.quarter(quarter, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	M: function(date$3, token, localize$2) {
+		const month = date$3.getMonth();
+		switch (token) {
+			case "M":
+			case "MM": return lightFormatters.M(date$3, token);
+			case "Mo": return localize$2.ordinalNumber(month + 1, { unit: "month" });
+			case "MMM": return localize$2.month(month, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "MMMMM": return localize$2.month(month, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "MMMM":
+			default: return localize$2.month(month, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	L: function(date$3, token, localize$2) {
+		const month = date$3.getMonth();
+		switch (token) {
+			case "L": return String(month + 1);
+			case "LL": return addLeadingZeros(month + 1, 2);
+			case "Lo": return localize$2.ordinalNumber(month + 1, { unit: "month" });
+			case "LLL": return localize$2.month(month, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "LLLLL": return localize$2.month(month, {
+				width: "narrow",
+				context: "standalone"
+			});
+			case "LLLL":
+			default: return localize$2.month(month, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	w: function(date$3, token, localize$2, options$1) {
+		const week = getWeek(date$3, options$1);
+		if (token === "wo") return localize$2.ordinalNumber(week, { unit: "week" });
+		return addLeadingZeros(week, token.length);
+	},
+	I: function(date$3, token, localize$2) {
+		const isoWeek = getISOWeek(date$3);
+		if (token === "Io") return localize$2.ordinalNumber(isoWeek, { unit: "week" });
+		return addLeadingZeros(isoWeek, token.length);
+	},
+	d: function(date$3, token, localize$2) {
+		if (token === "do") return localize$2.ordinalNumber(date$3.getDate(), { unit: "date" });
+		return lightFormatters.d(date$3, token);
+	},
+	D: function(date$3, token, localize$2) {
+		const dayOfYear = getDayOfYear(date$3);
+		if (token === "Do") return localize$2.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
+		return addLeadingZeros(dayOfYear, token.length);
+	},
+	E: function(date$3, token, localize$2) {
+		const dayOfWeek = date$3.getDay();
+		switch (token) {
+			case "E":
+			case "EE":
+			case "EEE": return localize$2.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "EEEEE": return localize$2.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "EEEEEE": return localize$2.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			case "EEEE":
+			default: return localize$2.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	e: function(date$3, token, localize$2, options$1) {
+		const dayOfWeek = date$3.getDay();
+		const localDayOfWeek = (dayOfWeek - options$1.weekStartsOn + 8) % 7 || 7;
+		switch (token) {
+			case "e": return String(localDayOfWeek);
+			case "ee": return addLeadingZeros(localDayOfWeek, 2);
+			case "eo": return localize$2.ordinalNumber(localDayOfWeek, { unit: "day" });
+			case "eee": return localize$2.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "eeeee": return localize$2.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "eeeeee": return localize$2.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			case "eeee":
+			default: return localize$2.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	c: function(date$3, token, localize$2, options$1) {
+		const dayOfWeek = date$3.getDay();
+		const localDayOfWeek = (dayOfWeek - options$1.weekStartsOn + 8) % 7 || 7;
+		switch (token) {
+			case "c": return String(localDayOfWeek);
+			case "cc": return addLeadingZeros(localDayOfWeek, token.length);
+			case "co": return localize$2.ordinalNumber(localDayOfWeek, { unit: "day" });
+			case "ccc": return localize$2.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "ccccc": return localize$2.day(dayOfWeek, {
+				width: "narrow",
+				context: "standalone"
+			});
+			case "cccccc": return localize$2.day(dayOfWeek, {
+				width: "short",
+				context: "standalone"
+			});
+			case "cccc":
+			default: return localize$2.day(dayOfWeek, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	i: function(date$3, token, localize$2) {
+		const dayOfWeek = date$3.getDay();
+		const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
+		switch (token) {
+			case "i": return String(isoDayOfWeek);
+			case "ii": return addLeadingZeros(isoDayOfWeek, token.length);
+			case "io": return localize$2.ordinalNumber(isoDayOfWeek, { unit: "day" });
+			case "iii": return localize$2.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "iiiii": return localize$2.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "iiiiii": return localize$2.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			case "iiii":
+			default: return localize$2.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	a: function(date$3, token, localize$2) {
+		const dayPeriodEnumValue = date$3.getHours() / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "a":
+			case "aa": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "aaa": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			}).toLowerCase();
+			case "aaaaa": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "aaaa":
+			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	b: function(date$3, token, localize$2) {
+		const hours = date$3.getHours();
+		let dayPeriodEnumValue;
+		if (hours === 12) dayPeriodEnumValue = dayPeriodEnum.noon;
+		else if (hours === 0) dayPeriodEnumValue = dayPeriodEnum.midnight;
+		else dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "b":
+			case "bb": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "bbb": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			}).toLowerCase();
+			case "bbbbb": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "bbbb":
+			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	B: function(date$3, token, localize$2) {
+		const hours = date$3.getHours();
+		let dayPeriodEnumValue;
+		if (hours >= 17) dayPeriodEnumValue = dayPeriodEnum.evening;
+		else if (hours >= 12) dayPeriodEnumValue = dayPeriodEnum.afternoon;
+		else if (hours >= 4) dayPeriodEnumValue = dayPeriodEnum.morning;
+		else dayPeriodEnumValue = dayPeriodEnum.night;
+		switch (token) {
+			case "B":
+			case "BB":
+			case "BBB": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "BBBBB": return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "BBBB":
+			default: return localize$2.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	h: function(date$3, token, localize$2) {
+		if (token === "ho") {
+			let hours = date$3.getHours() % 12;
+			if (hours === 0) hours = 12;
+			return localize$2.ordinalNumber(hours, { unit: "hour" });
+		}
+		return lightFormatters.h(date$3, token);
+	},
+	H: function(date$3, token, localize$2) {
+		if (token === "Ho") return localize$2.ordinalNumber(date$3.getHours(), { unit: "hour" });
+		return lightFormatters.H(date$3, token);
+	},
+	K: function(date$3, token, localize$2) {
+		const hours = date$3.getHours() % 12;
+		if (token === "Ko") return localize$2.ordinalNumber(hours, { unit: "hour" });
+		return addLeadingZeros(hours, token.length);
+	},
+	k: function(date$3, token, localize$2) {
+		let hours = date$3.getHours();
+		if (hours === 0) hours = 24;
+		if (token === "ko") return localize$2.ordinalNumber(hours, { unit: "hour" });
+		return addLeadingZeros(hours, token.length);
+	},
+	m: function(date$3, token, localize$2) {
+		if (token === "mo") return localize$2.ordinalNumber(date$3.getMinutes(), { unit: "minute" });
+		return lightFormatters.m(date$3, token);
+	},
+	s: function(date$3, token, localize$2) {
+		if (token === "so") return localize$2.ordinalNumber(date$3.getSeconds(), { unit: "second" });
+		return lightFormatters.s(date$3, token);
+	},
+	S: function(date$3, token) {
+		return lightFormatters.S(date$3, token);
+	},
+	X: function(date$3, token, _localize) {
+		const timezoneOffset = date$3.getTimezoneOffset();
+		if (timezoneOffset === 0) return "Z";
+		switch (token) {
+			case "X": return formatTimezoneWithOptionalMinutes(timezoneOffset);
+			case "XXXX":
+			case "XX": return formatTimezone(timezoneOffset);
+			case "XXXXX":
+			case "XXX":
+			default: return formatTimezone(timezoneOffset, ":");
+		}
+	},
+	x: function(date$3, token, _localize) {
+		const timezoneOffset = date$3.getTimezoneOffset();
+		switch (token) {
+			case "x": return formatTimezoneWithOptionalMinutes(timezoneOffset);
+			case "xxxx":
+			case "xx": return formatTimezone(timezoneOffset);
+			case "xxxxx":
+			case "xxx":
+			default: return formatTimezone(timezoneOffset, ":");
+		}
+	},
+	O: function(date$3, token, _localize) {
+		const timezoneOffset = date$3.getTimezoneOffset();
+		switch (token) {
+			case "O":
+			case "OO":
+			case "OOO": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+			case "OOOO":
+			default: return "GMT" + formatTimezone(timezoneOffset, ":");
+		}
+	},
+	z: function(date$3, token, _localize) {
+		const timezoneOffset = date$3.getTimezoneOffset();
+		switch (token) {
+			case "z":
+			case "zz":
+			case "zzz": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+			case "zzzz":
+			default: return "GMT" + formatTimezone(timezoneOffset, ":");
+		}
+	},
+	t: function(date$3, token, _localize) {
+		return addLeadingZeros(Math.trunc(+date$3 / 1e3), token.length);
+	},
+	T: function(date$3, token, _localize) {
+		return addLeadingZeros(+date$3, token.length);
+	}
+};
+function formatTimezoneShort(offset$3, delimiter = "") {
+	const sign$1 = offset$3 > 0 ? "-" : "+";
+	const absOffset = Math.abs(offset$3);
+	const hours = Math.trunc(absOffset / 60);
+	const minutes = absOffset % 60;
+	if (minutes === 0) return sign$1 + String(hours);
+	return sign$1 + String(hours) + delimiter + addLeadingZeros(minutes, 2);
+}
+function formatTimezoneWithOptionalMinutes(offset$3, delimiter) {
+	if (offset$3 % 60 === 0) return (offset$3 > 0 ? "-" : "+") + addLeadingZeros(Math.abs(offset$3) / 60, 2);
+	return formatTimezone(offset$3, delimiter);
+}
+function formatTimezone(offset$3, delimiter = "") {
+	const sign$1 = offset$3 > 0 ? "-" : "+";
+	const absOffset = Math.abs(offset$3);
+	const hours = addLeadingZeros(Math.trunc(absOffset / 60), 2);
+	const minutes = addLeadingZeros(absOffset % 60, 2);
+	return sign$1 + hours + delimiter + minutes;
+}
+var dateLongFormatter = (pattern, formatLong$2) => {
+	switch (pattern) {
+		case "P": return formatLong$2.date({ width: "short" });
+		case "PP": return formatLong$2.date({ width: "medium" });
+		case "PPP": return formatLong$2.date({ width: "long" });
+		case "PPPP":
+		default: return formatLong$2.date({ width: "full" });
+	}
+};
+var timeLongFormatter = (pattern, formatLong$2) => {
+	switch (pattern) {
+		case "p": return formatLong$2.time({ width: "short" });
+		case "pp": return formatLong$2.time({ width: "medium" });
+		case "ppp": return formatLong$2.time({ width: "long" });
+		case "pppp":
+		default: return formatLong$2.time({ width: "full" });
+	}
+};
+var dateTimeLongFormatter = (pattern, formatLong$2) => {
+	const matchResult = pattern.match(/(P+)(p+)?/) || [];
+	const datePattern = matchResult[1];
+	const timePattern = matchResult[2];
+	if (!timePattern) return dateLongFormatter(pattern, formatLong$2);
+	let dateTimeFormat;
+	switch (datePattern) {
+		case "P":
+			dateTimeFormat = formatLong$2.dateTime({ width: "short" });
+			break;
+		case "PP":
+			dateTimeFormat = formatLong$2.dateTime({ width: "medium" });
+			break;
+		case "PPP":
+			dateTimeFormat = formatLong$2.dateTime({ width: "long" });
+			break;
+		case "PPPP":
+		default:
+			dateTimeFormat = formatLong$2.dateTime({ width: "full" });
+			break;
+	}
+	return dateTimeFormat.replace("{{date}}", dateLongFormatter(datePattern, formatLong$2)).replace("{{time}}", timeLongFormatter(timePattern, formatLong$2));
+};
+const longFormatters = {
+	p: timeLongFormatter,
+	P: dateTimeLongFormatter
+};
+var dayOfYearTokenRE = /^D+$/;
+var weekYearTokenRE = /^Y+$/;
+var throwTokens = [
+	"D",
+	"DD",
+	"YY",
+	"YYYY"
+];
+function isProtectedDayOfYearToken(token) {
+	return dayOfYearTokenRE.test(token);
+}
+function isProtectedWeekYearToken(token) {
+	return weekYearTokenRE.test(token);
+}
+function warnOrThrowProtectedError(token, format$2, input) {
+	const _message = message(token, format$2, input);
+	console.warn(_message);
+	if (throwTokens.includes(token)) throw new RangeError(_message);
+}
+function message(token, format$2, input) {
+	const subject = token[0] === "Y" ? "years" : "days of the month";
+	return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format$2}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
+}
+var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
+var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
+var escapedStringRegExp = /^'([^]*?)'?$/;
+var doubleQuoteRegExp = /''/g;
+var unescapedLatinCharacterRegExp = /[a-zA-Z]/;
+function format(date$3, formatStr, options$1) {
+	const defaultOptions$2 = getDefaultOptions();
+	const locale$2 = options$1?.locale ?? defaultOptions$2.locale ?? enUS;
+	const firstWeekContainsDate = options$1?.firstWeekContainsDate ?? options$1?.locale?.options?.firstWeekContainsDate ?? defaultOptions$2.firstWeekContainsDate ?? defaultOptions$2.locale?.options?.firstWeekContainsDate ?? 1;
+	const weekStartsOn = options$1?.weekStartsOn ?? options$1?.locale?.options?.weekStartsOn ?? defaultOptions$2.weekStartsOn ?? defaultOptions$2.locale?.options?.weekStartsOn ?? 0;
+	const originalDate = toDate(date$3, options$1?.in);
+	if (!isValid(originalDate)) throw new RangeError("Invalid time value");
+	let parts = formatStr.match(longFormattingTokensRegExp).map((substring) => {
+		const firstCharacter = substring[0];
+		if (firstCharacter === "p" || firstCharacter === "P") {
+			const longFormatter = longFormatters[firstCharacter];
+			return longFormatter(substring, locale$2.formatLong);
+		}
+		return substring;
+	}).join("").match(formattingTokensRegExp).map((substring) => {
+		if (substring === "''") return {
+			isToken: false,
+			value: "'"
+		};
+		const firstCharacter = substring[0];
+		if (firstCharacter === "'") return {
+			isToken: false,
+			value: cleanEscapedString(substring)
+		};
+		if (formatters[firstCharacter]) return {
+			isToken: true,
+			value: substring
+		};
+		if (firstCharacter.match(unescapedLatinCharacterRegExp)) throw new RangeError("Format string contains an unescaped latin alphabet character `" + firstCharacter + "`");
+		return {
+			isToken: false,
+			value: substring
+		};
+	});
+	if (locale$2.localize.preprocessor) parts = locale$2.localize.preprocessor(originalDate, parts);
+	const formatterOptions = {
+		firstWeekContainsDate,
+		weekStartsOn,
+		locale: locale$2
+	};
+	return parts.map((part) => {
+		if (!part.isToken) return part.value;
+		const token = part.value;
+		if (!options$1?.useAdditionalWeekYearTokens && isProtectedWeekYearToken(token) || !options$1?.useAdditionalDayOfYearTokens && isProtectedDayOfYearToken(token)) warnOrThrowProtectedError(token, formatStr, String(date$3));
+		const formatter = formatters[token[0]];
+		return formatter(originalDate, token, locale$2.localize, formatterOptions);
+	}).join("");
+}
+function cleanEscapedString(input) {
+	const matched = input.match(escapedStringRegExp);
+	if (!matched) return input;
+	return matched[1].replace(doubleQuoteRegExp, "'");
+}
+function formatDistance$1(laterDate, earlierDate, options$1) {
+	const defaultOptions$2 = getDefaultOptions();
+	const locale$2 = options$1?.locale ?? defaultOptions$2.locale ?? enUS;
+	const minutesInAlmostTwoDays = 2520;
+	const comparison = compareAsc(laterDate, earlierDate);
+	if (isNaN(comparison)) throw new RangeError("Invalid time value");
+	const localizeOptions = Object.assign({}, options$1, {
+		addSuffix: options$1?.addSuffix,
+		comparison
+	});
+	const [laterDate_, earlierDate_] = normalizeDates(options$1?.in, ...comparison > 0 ? [earlierDate, laterDate] : [laterDate, earlierDate]);
+	const seconds$1 = differenceInSeconds(earlierDate_, laterDate_);
+	const offsetInSeconds = (getTimezoneOffsetInMilliseconds(earlierDate_) - getTimezoneOffsetInMilliseconds(laterDate_)) / 1e3;
+	const minutes = Math.round((seconds$1 - offsetInSeconds) / 60);
+	let months;
+	if (minutes < 2) if (options$1?.includeSeconds) if (seconds$1 < 5) return locale$2.formatDistance("lessThanXSeconds", 5, localizeOptions);
+	else if (seconds$1 < 10) return locale$2.formatDistance("lessThanXSeconds", 10, localizeOptions);
+	else if (seconds$1 < 20) return locale$2.formatDistance("lessThanXSeconds", 20, localizeOptions);
+	else if (seconds$1 < 40) return locale$2.formatDistance("halfAMinute", 0, localizeOptions);
+	else if (seconds$1 < 60) return locale$2.formatDistance("lessThanXMinutes", 1, localizeOptions);
+	else return locale$2.formatDistance("xMinutes", 1, localizeOptions);
+	else if (minutes === 0) return locale$2.formatDistance("lessThanXMinutes", 1, localizeOptions);
+	else return locale$2.formatDistance("xMinutes", minutes, localizeOptions);
+	else if (minutes < 45) return locale$2.formatDistance("xMinutes", minutes, localizeOptions);
+	else if (minutes < 90) return locale$2.formatDistance("aboutXHours", 1, localizeOptions);
+	else if (minutes < 1440) {
+		const hours = Math.round(minutes / 60);
+		return locale$2.formatDistance("aboutXHours", hours, localizeOptions);
+	} else if (minutes < minutesInAlmostTwoDays) return locale$2.formatDistance("xDays", 1, localizeOptions);
+	else if (minutes < 43200) {
+		const days = Math.round(minutes / minutesInDay);
+		return locale$2.formatDistance("xDays", days, localizeOptions);
+	} else if (minutes < 43200 * 2) {
+		months = Math.round(minutes / minutesInMonth);
+		return locale$2.formatDistance("aboutXMonths", months, localizeOptions);
+	}
+	months = differenceInMonths(earlierDate_, laterDate_);
+	if (months < 12) {
+		const nearestMonth = Math.round(minutes / minutesInMonth);
+		return locale$2.formatDistance("xMonths", nearestMonth, localizeOptions);
+	} else {
+		const monthsSinceStartOfYear = months % 12;
+		const years = Math.trunc(months / 12);
+		if (monthsSinceStartOfYear < 3) return locale$2.formatDistance("aboutXYears", years, localizeOptions);
+		else if (monthsSinceStartOfYear < 9) return locale$2.formatDistance("overXYears", years, localizeOptions);
+		else return locale$2.formatDistance("almostXYears", years + 1, localizeOptions);
+	}
+}
+function formatDistanceToNow(date$3, options$1) {
+	return formatDistance$1(date$3, constructNow(date$3), options$1);
+}
+function isPast(date$3) {
+	return +toDate(date$3) < Date.now();
+}
+function subDays(date$3, amount, options$1) {
+	return addDays(date$3, -amount, options$1);
+}
+function parseISO(argument, options$1) {
+	const invalidDate = () => constructFrom(options$1?.in, NaN);
+	const additionalDigits = options$1?.additionalDigits ?? 2;
+	const dateStrings = splitDateString(argument);
+	let date$3;
+	if (dateStrings.date) {
+		const parseYearResult = parseYear$1(dateStrings.date, additionalDigits);
+		date$3 = parseDate(parseYearResult.restDateString, parseYearResult.year);
+	}
+	if (!date$3 || isNaN(+date$3)) return invalidDate();
+	const timestamp = +date$3;
+	let time$3 = 0;
+	let offset$3;
+	if (dateStrings.time) {
+		time$3 = parseTime(dateStrings.time);
+		if (isNaN(time$3)) return invalidDate();
+	}
+	if (dateStrings.timezone) {
+		offset$3 = parseTimezone(dateStrings.timezone);
+		if (isNaN(offset$3)) return invalidDate();
+	} else {
+		const tmpDate = new Date(timestamp + time$3);
+		const result = toDate(0, options$1?.in);
+		result.setFullYear(tmpDate.getUTCFullYear(), tmpDate.getUTCMonth(), tmpDate.getUTCDate());
+		result.setHours(tmpDate.getUTCHours(), tmpDate.getUTCMinutes(), tmpDate.getUTCSeconds(), tmpDate.getUTCMilliseconds());
+		return result;
+	}
+	return toDate(timestamp + time$3 + offset$3, options$1?.in);
+}
+var patterns = {
+	dateTimeDelimiter: /[T ]/,
+	timeZoneDelimiter: /[Z ]/i,
+	timezone: /([Z+-].*)$/
+};
+var dateRegex = /^-?(?:(\d{3})|(\d{2})(?:-?(\d{2}))?|W(\d{2})(?:-?(\d{1}))?|)$/;
+var timeRegex = /^(\d{2}(?:[.,]\d*)?)(?::?(\d{2}(?:[.,]\d*)?))?(?::?(\d{2}(?:[.,]\d*)?))?$/;
+var timezoneRegex = /^([+-])(\d{2})(?::?(\d{2}))?$/;
+function splitDateString(dateString) {
+	const dateStrings = {};
+	const array$1 = dateString.split(patterns.dateTimeDelimiter);
+	let timeString;
+	if (array$1.length > 2) return dateStrings;
+	if (/:/.test(array$1[0])) timeString = array$1[0];
+	else {
+		dateStrings.date = array$1[0];
+		timeString = array$1[1];
+		if (patterns.timeZoneDelimiter.test(dateStrings.date)) {
+			dateStrings.date = dateString.split(patterns.timeZoneDelimiter)[0];
+			timeString = dateString.substr(dateStrings.date.length, dateString.length);
+		}
+	}
+	if (timeString) {
+		const token = patterns.timezone.exec(timeString);
+		if (token) {
+			dateStrings.time = timeString.replace(token[1], "");
+			dateStrings.timezone = token[1];
+		} else dateStrings.time = timeString;
+	}
+	return dateStrings;
+}
+function parseYear$1(dateString, additionalDigits) {
+	const regex = /* @__PURE__ */ new RegExp("^(?:(\\d{4}|[+-]\\d{" + (4 + additionalDigits) + "})|(\\d{2}|[+-]\\d{" + (2 + additionalDigits) + "})$)");
+	const captures = dateString.match(regex);
+	if (!captures) return {
+		year: NaN,
+		restDateString: ""
+	};
+	const year = captures[1] ? parseInt(captures[1]) : null;
+	const century = captures[2] ? parseInt(captures[2]) : null;
+	return {
+		year: century === null ? year : century * 100,
+		restDateString: dateString.slice((captures[1] || captures[2]).length)
+	};
+}
+function parseDate(dateString, year) {
+	if (year === null) return /* @__PURE__ */ new Date(NaN);
+	const captures = dateString.match(dateRegex);
+	if (!captures) return /* @__PURE__ */ new Date(NaN);
+	const isWeekDate = !!captures[4];
+	const dayOfYear = parseDateUnit(captures[1]);
+	const month = parseDateUnit(captures[2]) - 1;
+	const day = parseDateUnit(captures[3]);
+	const week = parseDateUnit(captures[4]);
+	const dayOfWeek = parseDateUnit(captures[5]) - 1;
+	if (isWeekDate) {
+		if (!validateWeekDate(year, week, dayOfWeek)) return /* @__PURE__ */ new Date(NaN);
+		return dayOfISOWeekYear(year, week, dayOfWeek);
+	} else {
+		const date$3 = /* @__PURE__ */ new Date(0);
+		if (!validateDate(year, month, day) || !validateDayOfYearDate(year, dayOfYear)) return /* @__PURE__ */ new Date(NaN);
+		date$3.setUTCFullYear(year, month, Math.max(dayOfYear, day));
+		return date$3;
+	}
+}
+function parseDateUnit(value) {
+	return value ? parseInt(value) : 1;
+}
+function parseTime(timeString) {
+	const captures = timeString.match(timeRegex);
+	if (!captures) return NaN;
+	const hours = parseTimeUnit(captures[1]);
+	const minutes = parseTimeUnit(captures[2]);
+	const seconds$1 = parseTimeUnit(captures[3]);
+	if (!validateTime(hours, minutes, seconds$1)) return NaN;
+	return hours * millisecondsInHour + minutes * millisecondsInMinute + seconds$1 * 1e3;
+}
+function parseTimeUnit(value) {
+	return value && parseFloat(value.replace(",", ".")) || 0;
+}
+function parseTimezone(timezoneString) {
+	if (timezoneString === "Z") return 0;
+	const captures = timezoneString.match(timezoneRegex);
+	if (!captures) return 0;
+	const sign$1 = captures[1] === "+" ? -1 : 1;
+	const hours = parseInt(captures[2]);
+	const minutes = captures[3] && parseInt(captures[3]) || 0;
+	if (!validateTimezone(hours, minutes)) return NaN;
+	return sign$1 * (hours * millisecondsInHour + minutes * millisecondsInMinute);
+}
+function dayOfISOWeekYear(isoWeekYear, week, day) {
+	const date$3 = /* @__PURE__ */ new Date(0);
+	date$3.setUTCFullYear(isoWeekYear, 0, 4);
+	const fourthOfJanuaryDay = date$3.getUTCDay() || 7;
+	const diff = (week - 1) * 7 + day + 1 - fourthOfJanuaryDay;
+	date$3.setUTCDate(date$3.getUTCDate() + diff);
+	return date$3;
+}
+var daysInMonths = [
+	31,
+	null,
+	31,
+	30,
+	31,
+	30,
+	31,
+	31,
+	30,
+	31,
+	30,
+	31
+];
+function isLeapYearIndex(year) {
+	return year % 400 === 0 || year % 4 === 0 && year % 100 !== 0;
+}
+function validateDate(year, month, date$3) {
+	return month >= 0 && month <= 11 && date$3 >= 1 && date$3 <= (daysInMonths[month] || (isLeapYearIndex(year) ? 29 : 28));
+}
+function validateDayOfYearDate(year, dayOfYear) {
+	return dayOfYear >= 1 && dayOfYear <= (isLeapYearIndex(year) ? 366 : 365);
+}
+function validateWeekDate(_year, week, day) {
+	return week >= 1 && week <= 53 && day >= 0 && day <= 6;
+}
+function validateTime(hours, minutes, seconds$1) {
+	if (hours === 24) return minutes === 0 && seconds$1 === 0;
+	return seconds$1 >= 0 && seconds$1 < 60 && minutes >= 0 && minutes < 60 && hours >= 0 && hours < 25;
+}
+function validateTimezone(_hours, minutes) {
+	return minutes >= 0 && minutes <= 59;
+}
+function subMonths(date$3, amount, options$1) {
+	return addMonths(date$3, -amount, options$1);
+}
+var T1_ID = "a1111111-1111-4111-a111-111111111111";
+var T2_ID = "a2222222-2222-4222-a222-222222222222";
+var T3_ID = "a3333333-3333-4333-a333-333333333333";
+var P1_ID = "b1111111-1111-4111-b111-111111111111";
+var P2_ID = "b2222222-2222-4222-b222-222222222222";
+var P3_ID = "b3333333-3333-4333-b333-333333333333";
+var O1_ID = "c1111111-1111-4111-c111-111111111111";
+var O2_ID = "c2222222-2222-4222-c222-222222222222";
+var U1_ID = "f1111111-1111-4111-f111-111111111111";
+var U2_ID = "f2222222-2222-4222-f222-222222222222";
+const mockTenants = [
+	{
+		id: T1_ID,
+		name: "VESTRA",
+		cnpj: "12.345.678/0001-90",
+		status: "ACTIVE",
+		createdAt: "2025-01-10",
+		projectCount: 2,
+		logoUrl: "https://img.usecurling.com/i?q=building&color=blue",
+		primaryColor: "#0f172a"
+	},
+	{
+		id: T2_ID,
+		name: "Beta Incorporadora",
+		cnpj: "98.765.432/0001-10",
+		status: "ACTIVE",
+		createdAt: "2025-02-15",
+		projectCount: 1,
+		logoUrl: "https://img.usecurling.com/i?q=crane&color=orange",
+		primaryColor: "#EAB308"
+	},
+	{
+		id: T3_ID,
+		name: "Gamma Engenharia",
+		cnpj: "45.123.789/0001-55",
+		status: "SUSPENDED",
+		createdAt: "2025-03-01",
+		projectCount: 0,
+		logoUrl: "https://img.usecurling.com/i?q=helmet&color=gray",
+		primaryColor: "#64748B"
+	}
+];
+const mockProjects = [
+	{
+		id: P1_ID,
+		tenantId: T1_ID,
+		name: "Residencial Horizonte",
+		city: "São Paulo",
+		state: "SP",
+		manager: "Eng. Ricardo Silva",
+		address: "Av. Paulista, 1000, São Paulo",
+		totalUnits: 40,
+		deliveredUnits: 0,
+		openIssues: 5,
+		completionPercentage: 75,
+		deliveryDate: "2026-12-01",
+		status: "CONSTRUCTION",
+		phase: "EXECUTION",
+		imageUrl: "https://img.usecurling.com/p/400/300?q=modern%20apartment%20building"
+	},
+	{
+		id: P2_ID,
+		tenantId: T1_ID,
+		name: "Torre Crystal",
+		city: "São Paulo",
+		state: "SP",
+		manager: "Arq. Julia Santos",
+		address: "Rua Oscar Freire, 500, São Paulo",
+		totalUnits: 20,
+		deliveredUnits: 0,
+		openIssues: 0,
+		completionPercentage: 10,
+		deliveryDate: "2027-06-01",
+		status: "PLANNING",
+		phase: "PRE_SALES",
+		imageUrl: "https://img.usecurling.com/p/400/300?q=luxury%20condo"
+	},
+	{
+		id: P3_ID,
+		tenantId: T2_ID,
+		name: "Vila Verde",
+		city: "Campinas",
+		state: "SP",
+		manager: "Eng. Pedro Costa",
+		address: "Rua das Flores, 20, Campinas",
+		totalUnits: 100,
+		deliveredUnits: 100,
+		openIssues: 2,
+		completionPercentage: 100,
+		deliveryDate: "2025-10-01",
+		status: "DELIVERED",
+		phase: "POST_DELIVERY",
+		imageUrl: "https://img.usecurling.com/p/400/300?q=suburban%20houses"
+	}
+];
+const mockUnits = [
+	{
+		id: "d1111111-1111-4111-d111-111111111111",
+		projectId: P1_ID,
+		block: "A",
+		number: "101",
+		floor: "1º",
+		bedrooms: 2,
+		bathrooms: 1,
+		typology: "2D",
+		area: 65,
+		price: 45e4,
+		status: "SOLD",
+		ownerId: O1_ID
+	},
+	{
+		id: "d2222222-2222-4222-d222-222222222222",
+		projectId: P1_ID,
+		block: "A",
+		number: "102",
+		floor: "1º",
+		bedrooms: 2,
+		bathrooms: 1,
+		typology: "2D",
+		area: 65,
+		price: 45e4,
+		status: "AVAILABLE"
+	},
+	{
+		id: "d3333333-3333-4333-d333-333333333333",
+		projectId: P1_ID,
+		block: "A",
+		number: "103",
+		floor: "1º",
+		bedrooms: 3,
+		bathrooms: 2,
+		typology: "3D",
+		area: 85,
+		price: 65e4,
+		status: "RESERVED"
+	},
+	{
+		id: "d4444444-4444-4444-d444-444444444444",
+		projectId: P1_ID,
+		block: "B",
+		number: "201",
+		floor: "2º",
+		bedrooms: 2,
+		bathrooms: 1,
+		typology: "2D",
+		area: 65,
+		price: 46e4,
+		status: "AVAILABLE"
+	},
+	{
+		id: "d5555555-5555-5555-d555-555555555555",
+		projectId: P1_ID,
+		block: "B",
+		number: "202",
+		floor: "2º",
+		bedrooms: 1,
+		bathrooms: 1,
+		typology: "Studio",
+		area: 40,
+		price: 3e5,
+		status: "SOLD",
+		ownerId: O2_ID
+	},
+	{
+		id: "d6666666-6666-6666-d666-666666666666",
+		projectId: P2_ID,
+		block: "Unico",
+		number: "10",
+		floor: "10º",
+		bedrooms: 4,
+		bathrooms: 3,
+		typology: "4D",
+		area: 150,
+		price: 15e5,
+		status: "AVAILABLE"
+	},
+	{
+		id: "d7777777-7777-7777-d777-777777777777",
+		projectId: P2_ID,
+		block: "Unico",
+		number: "11",
+		floor: "11º",
+		bedrooms: 4,
+		bathrooms: 3,
+		typology: "4D",
+		area: 150,
+		price: 155e4,
+		status: "AVAILABLE"
+	}
+];
+const mockOwners = [{
+	id: O1_ID,
+	name: "Roberto Proprietário",
+	email: "roberto@gmail.com",
+	phone: "(11) 99999-9999",
+	document: "123.456.789-00",
+	unitsOwned: ["d1111111-1111-4111-d111-111111111111"]
+}, {
+	id: O2_ID,
+	name: "Fernanda Lima",
+	email: "fernanda@gmail.com",
+	phone: "(11) 98888-8888",
+	document: "321.654.987-00",
+	unitsOwned: ["d5555555-5555-5555-d555-555555555555"]
+}];
+const mockAuditLogs = [
+	{
+		id: "11111111-1111-4111-1111-111111111111",
+		userId: U1_ID,
+		userName: "Carlos Master",
+		action: "CREATE",
+		entityType: "TENANT",
+		entityId: T1_ID,
+		details: "Created tenant Alpha Construções",
+		timestamp: subDays(/* @__PURE__ */ new Date(), 2).toISOString()
+	},
+	{
+		id: "22222222-2222-4222-2222-222222222222",
+		userId: U2_ID,
+		userName: "Ana Vestra",
+		action: "UPDATE",
+		entityType: "UNIT",
+		entityId: "d1111111-1111-4111-d111-111111111111",
+		details: "Status changed from AVAILABLE to SOLD",
+		timestamp: subDays(/* @__PURE__ */ new Date(), 1).toISOString()
+	},
+	{
+		id: "33333333-3333-4333-3333-333333333333",
+		userId: U2_ID,
+		userName: "Ana Vestra",
+		action: "UPDATE",
+		entityType: "PROJECT",
+		entityId: P1_ID,
+		details: "Completion updated to 75%",
+		timestamp: (/* @__PURE__ */ new Date()).toISOString()
+	}
+];
+const mockLeads = [{
+	id: "g1111111-1111-4111-g111-111111111111",
+	companyType: "construtora",
+	businessName: "Delta Construções",
+	cnpj: "55.444.333/0001-22",
+	managerName: "José da Silva",
+	email: "jose@deltaconst.com.br",
+	whatsapp: "(11) 98765-4321",
+	location: "São Paulo - SP",
+	unitsPerMonth: "51-200",
+	plan: "pro",
+	status: "NEW",
+	createdAt: subDays(/* @__PURE__ */ new Date(), 3).toISOString()
+}];
+const mockDocuments = [
+	{
+		id: "e1111111-1111-4111-e111-111111111111",
+		projectId: P1_ID,
+		name: "Planta Baixa - Bloco A.pdf",
+		category: "Projetos",
+		version: 1,
+		tags: ["arquitetura", "bloco A"],
+		isVisibleToOwners: true,
+		url: "#",
+		createdAt: subMonths(/* @__PURE__ */ new Date(), 2).toISOString(),
+		createdBy: "Ana Vestra",
+		size: "2.4 MB",
+		type: "pdf"
+	},
+	{
+		id: "e2222222-2222-4222-e222-222222222222",
+		projectId: P1_ID,
+		name: "Alvará de Construção.pdf",
+		category: "Habite-se",
+		version: 1,
+		tags: ["legal", "prefeitura"],
+		isVisibleToOwners: false,
+		url: "#",
+		createdAt: subMonths(/* @__PURE__ */ new Date(), 5).toISOString(),
+		createdBy: "Ana Vestra",
+		size: "1.1 MB",
+		type: "pdf"
+	},
+	{
+		id: "e3333333-3333-4333-e333-333333333333",
+		projectId: P1_ID,
+		name: "Manual do Proprietário.pdf",
+		category: "Manuais",
+		version: 2,
+		tags: ["entrega", "manual"],
+		isVisibleToOwners: true,
+		url: "#",
+		createdAt: subDays(/* @__PURE__ */ new Date(), 10).toISOString(),
+		createdBy: "Ana Vestra",
+		size: "5.6 MB",
+		type: "pdf"
+	}
+];
+const mockDocumentLogs = [{
+	id: "dl1",
+	documentId: "e1111111-1111-4111-e111-111111111111",
+	action: "UPLOAD",
+	userId: U2_ID,
+	userName: "Ana Vestra",
+	timestamp: subMonths(/* @__PURE__ */ new Date(), 2).toISOString(),
+	details: "Initial upload"
+}, {
+	id: "dl2",
+	documentId: "e1111111-1111-4111-e111-111111111111",
+	action: "VIEW",
+	userId: U1_ID,
+	userName: "Carlos Master",
+	timestamp: subDays(/* @__PURE__ */ new Date(), 15).toISOString()
+}];
 const consentService = {
 	async getUserConsents(userId) {
 		const { data, error } = await supabase.from("user_consents").select("consent_type, is_accepted").eq("user_id", userId);
@@ -33962,11 +33995,16 @@ const consentService = {
 		return data;
 	},
 	async upsertConsent(userId, consentType, isAccepted) {
+		let ip_address = null;
+		try {
+			ip_address = (await (await fetch("https://api.ipify.org?format=json")).json()).ip;
+		} catch (e) {}
 		const payload = {
 			user_id: userId,
 			consent_type: consentType,
 			is_accepted: isAccepted,
 			user_agent: navigator.userAgent,
+			ip_address,
 			updated_at: (/* @__PURE__ */ new Date()).toISOString()
 		};
 		const { error } = await supabase.from("user_consents").upsert(payload, { onConflict: "user_id,consent_type" });
@@ -33986,6 +34024,7 @@ var getInitialConsents = () => {
 	};
 };
 const AppProvider = ({ children }) => {
+	const { user: authUser, signIn, signOut } = useAuth();
 	const [user, setUser] = (0, import_react.useState)(null);
 	const [tenants, setTenants] = (0, import_react.useState)(mockTenants);
 	const [projects, setProjects] = (0, import_react.useState)(mockProjects);
@@ -34002,6 +34041,35 @@ const AppProvider = ({ children }) => {
 	const addAuditLog = (log$1) => {
 		setAuditLogs((prev) => [log$1, ...prev]);
 	};
+	(0, import_react.useEffect)(() => {
+		if (authUser) {
+			setUser({
+				id: authUser.id,
+				name: authUser.user_metadata?.name || authUser.email?.split("@")[0] || "Usuário",
+				email: authUser.email || "",
+				role: authUser.user_metadata?.role || "MASTER",
+				tenantId: authUser.user_metadata?.tenantId || "sys"
+			});
+			consentService.getUserConsents(authUser.id).then((dbConsents) => {
+				if (dbConsents && dbConsents.length > 0) {
+					const merged = { ...consents };
+					dbConsents.forEach((c$1) => {
+						if (c$1.consent_type === "ANALYTICS") merged.analytics = c$1.is_accepted;
+						if (c$1.consent_type === "MARKETING") merged.marketing = c$1.is_accepted;
+						if (c$1.consent_type === "TERMS_OF_USE") merged.termsOfUse = c$1.is_accepted;
+					});
+					setConsents(merged);
+					setConsentResolved(true);
+					localStorage.setItem("vestra_consents", JSON.stringify(merged));
+					localStorage.setItem("vestra_consent_resolved", "true");
+				} else if (consentResolved) Promise.all([
+					consentService.upsertConsent(authUser.id, "TERMS_OF_USE", consents.termsOfUse),
+					consentService.upsertConsent(authUser.id, "ANALYTICS", consents.analytics),
+					consentService.upsertConsent(authUser.id, "MARKETING", consents.marketing)
+				]).catch((e) => console.error(e));
+			}).catch(console.error);
+		} else setUser(null);
+	}, [authUser]);
 	const updateConsents = async (newConsents) => {
 		const updated = {
 			...consents,
@@ -34012,62 +34080,39 @@ const AppProvider = ({ children }) => {
 		setConsentResolved(true);
 		localStorage.setItem("vestra_consents", JSON.stringify(updated));
 		localStorage.setItem("vestra_consent_resolved", "true");
-		if (user) try {
+		if (authUser) try {
 			await Promise.all([
-				consentService.upsertConsent(user.id, "Termos de Uso", updated.termsOfUse),
-				consentService.upsertConsent(user.id, "Cookies Analíticos", updated.analytics),
-				consentService.upsertConsent(user.id, "Marketing", updated.marketing)
+				consentService.upsertConsent(authUser.id, "TERMS_OF_USE", updated.termsOfUse),
+				consentService.upsertConsent(authUser.id, "ANALYTICS", updated.analytics),
+				consentService.upsertConsent(authUser.id, "MARKETING", updated.marketing)
 			]);
 			addAuditLog({
 				id: Math.random().toString(),
-				userId: user.id,
-				userName: user.name,
+				userId: authUser.id,
+				userName: authUser.email || "Usuário",
 				action: "CONSENT_UPDATE",
 				entityType: "USER",
-				entityId: user.id,
+				entityId: authUser.id,
 				details: `Consents updated: Analytics=${updated.analytics}, Marketing=${updated.marketing}`,
 				timestamp: (/* @__PURE__ */ new Date()).toISOString()
 			});
 		} catch (e) {
-			console.error("Failed to sync consents to DB (Expected in Mock)", e);
+			console.error("Failed to sync consents to DB", e);
 		}
 	};
 	const login = async (email$1, password) => {
-		await new Promise((resolve) => setTimeout(resolve, 1e3));
-		const foundUser = mockUsers.find((u) => u.email === email$1);
-		if (foundUser) {
-			setUser(foundUser);
+		const { error } = await signIn(email$1, password || "password123");
+		if (!error) {
 			addAuditLog({
 				id: Math.random().toString(),
-				userId: foundUser.id,
-				userName: foundUser.name,
+				userId: email$1,
+				userName: email$1,
 				action: "LOGIN",
 				entityType: "AUTH",
-				entityId: foundUser.id,
+				entityId: email$1,
 				details: "User logged in successfully",
 				timestamp: (/* @__PURE__ */ new Date()).toISOString()
 			});
-			try {
-				const dbConsents = await consentService.getUserConsents(foundUser.id);
-				if (dbConsents && dbConsents.length > 0) {
-					const merged = { ...consents };
-					dbConsents.forEach((c$1) => {
-						if (c$1.consent_type === "Cookies Analíticos") merged.analytics = c$1.is_accepted;
-						if (c$1.consent_type === "Marketing") merged.marketing = c$1.is_accepted;
-						if (c$1.consent_type === "Termos de Uso") merged.termsOfUse = c$1.is_accepted;
-					});
-					setConsents(merged);
-					setConsentResolved(true);
-					localStorage.setItem("vestra_consents", JSON.stringify(merged));
-					localStorage.setItem("vestra_consent_resolved", "true");
-				} else if (consentResolved) await Promise.all([
-					consentService.upsertConsent(foundUser.id, "Termos de Uso", consents.termsOfUse),
-					consentService.upsertConsent(foundUser.id, "Cookies Analíticos", consents.analytics),
-					consentService.upsertConsent(foundUser.id, "Marketing", consents.marketing)
-				]);
-			} catch (e) {
-				console.error("Error syncing user consents", e);
-			}
 			return true;
 		} else {
 			addAuditLog({
@@ -34077,13 +34122,13 @@ const AppProvider = ({ children }) => {
 				action: "LOGIN_FAILED",
 				entityType: "AUTH",
 				entityId: email$1,
-				details: `Failed login attempt for ${email$1}`,
+				details: `Failed login attempt for ${email$1}: ${error.message}`,
 				timestamp: (/* @__PURE__ */ new Date()).toISOString()
 			});
 			return false;
 		}
 	};
-	const logout = () => {
+	const logout = async () => {
 		if (user) addAuditLog({
 			id: Math.random().toString(),
 			userId: user.id,
@@ -34094,7 +34139,7 @@ const AppProvider = ({ children }) => {
 			details: "User logged out",
 			timestamp: (/* @__PURE__ */ new Date()).toISOString()
 		});
-		setUser(null);
+		await signOut();
 	};
 	const addTenant = (tenant) => {
 		setTenants([...tenants, tenant]);
@@ -35884,7 +35929,7 @@ function ConsentModal({ open, onOpenChange }) {
 								className: "space-y-1",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 									className: "text-base",
-									children: "Termos de Uso"
+									children: "Termos de Uso & Essencial"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-sm text-muted-foreground",
 									children: "Necessários para o funcionamento básico da plataforma, segurança, e cumprimento das obrigações legais (LGPD). Não podem ser desativados."
@@ -35952,7 +35997,9 @@ function ConsentModal({ open, onOpenChange }) {
 function ConsentBanner() {
 	const { consentResolved, updateConsents } = useAppStore();
 	const [showModal, setShowModal] = (0, import_react.useState)(false);
-	if (consentResolved) return null;
+	const location = useLocation();
+	const isTargetPage = location.pathname === "/" || location.pathname === "/login";
+	if (consentResolved || !isTargetPage) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-50 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] animate-slide-up",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -35967,7 +36014,14 @@ function ConsentBanner() {
 					children: [
 						"A ",
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "VESTRA" }),
-						" utiliza cookies e tecnologias semelhantes para garantir a segurança, melhorar a sua experiência, analisar o tráfego do site e personalizar conteúdo. Ao clicar em \"Aceitar\", você concorda com o uso de todos os cookies, em conformidade com a LGPD."
+						" utiliza cookies e tecnologias semelhantes para garantir a segurança, melhorar a sua experiência, analisar o tráfego do site e personalizar conteúdo. Ao clicar em \"Aceitar Todos\", você concorda com o uso de todos os cookies, em conformidade com a LGPD e nossa",
+						" ",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							href: "#",
+							className: "underline font-medium hover:text-primary",
+							children: "Política de Privacidade"
+						}),
+						"."
 					]
 				})]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -35978,7 +36032,7 @@ function ConsentBanner() {
 						size: "sm",
 						className: "flex-1 md:flex-none",
 						onClick: () => setShowModal(true),
-						children: "Configurações"
+						children: "Personalizar"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						variant: "secondary",
@@ -35988,7 +36042,7 @@ function ConsentBanner() {
 							analytics: false,
 							marketing: false
 						}),
-						children: "Recusar"
+						children: "Rejeitar"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						size: "sm",
@@ -35997,7 +36051,7 @@ function ConsentBanner() {
 							analytics: true,
 							marketing: true
 						}),
-						children: "Aceitar"
+						children: "Aceitar Todos"
 					})
 				]
 			})]
@@ -36685,7 +36739,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				var cachedValue = getSnapshot();
 				objectIs(value, cachedValue) || (console.error("The result of getSnapshot should be cached to avoid an infinite loop"), didWarnUncachedGetSnapshot = !0);
 			}
-			cachedValue = useState$33({ inst: {
+			cachedValue = useState$34({ inst: {
 				value,
 				getSnapshot
 			} });
@@ -36699,7 +36753,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				value,
 				getSnapshot
 			]);
-			useEffect$21(function() {
+			useEffect$23(function() {
 				checkIfSnapshotChanged(inst) && forceUpdate({ inst });
 				return subscribe$1(function() {
 					checkIfSnapshotChanged(inst) && forceUpdate({ inst });
@@ -36722,7 +36776,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 			return getSnapshot();
 		}
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-		var React$34 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$33 = React$34.useState, useEffect$21 = React$34.useEffect, useLayoutEffect$1 = React$34.useLayoutEffect, useDebugValue = React$34.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+		var React$34 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$34 = React$34.useState, useEffect$23 = React$34.useEffect, useLayoutEffect$1 = React$34.useLayoutEffect, useDebugValue = React$34.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
 		exports.useSyncExternalStore = void 0 !== React$34.useSyncExternalStore ? React$34.useSyncExternalStore : shim;
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
 	})();
@@ -67842,7 +67896,7 @@ function Login() {
 		}
 	};
 	if (user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		to: "/",
+		to: "/dashboard",
 		replace: true
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -68092,6 +68146,7 @@ var registerSchema = object({
 });
 function Register() {
 	const { toast: toast$2 } = useToast();
+	const { signUp } = useAuth();
 	const [isLoading, setIsLoading] = (0, import_react.useState)(false);
 	const [isSuccess, setIsSuccess] = (0, import_react.useState)(false);
 	const form = useForm({
@@ -68105,13 +68160,24 @@ function Register() {
 	});
 	const onSubmit = async (data) => {
 		setIsLoading(true);
-		await new Promise((resolve) => setTimeout(resolve, 2e3));
-		setIsLoading(false);
-		setIsSuccess(true);
-		toast$2({
-			title: "Conta criada com sucesso!",
-			description: "Agora você pode fazer login com suas credenciais."
+		const { error } = await signUp(data.email, data.password, {
+			name: data.name,
+			role: data.role,
+			tenantId: "sys"
 		});
+		setIsLoading(false);
+		if (error) toast$2({
+			variant: "destructive",
+			title: "Erro ao criar conta",
+			description: error.message
+		});
+		else {
+			setIsSuccess(true);
+			toast$2({
+				title: "Conta criada com sucesso!",
+				description: "Verifique seu email ou faça login com suas credenciais."
+			});
+		}
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "min-h-screen flex items-center justify-center bg-slate-50 p-4",
@@ -75063,7 +75129,7 @@ function Settings() {
 						className: "flex items-center gap-4",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "h-16 w-16 bg-slate-200 rounded-full flex items-center justify-center text-2xl font-bold text-slate-500",
-							children: user.name.charAt(0)
+							children: user.name.charAt(0).toUpperCase()
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 								className: "font-medium text-lg",
@@ -75092,7 +75158,7 @@ function Settings() {
 									className: "space-y-1",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
 										className: "text-base",
-										children: "Termos de Uso"
+										children: "Termos de Uso & Essencial"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										className: "text-sm text-muted-foreground",
 										children: "Necessários para o funcionamento básico da plataforma, autenticação, segurança e cumprimento das obrigações legais. Não podem ser desativados."
@@ -75194,7 +75260,7 @@ var NotFound = () => {
 	});
 };
 var NotFound_default = NotFound;
-var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(BrowserRouter, {
+var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(BrowserRouter, {
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
@@ -75278,8 +75344,8 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { child
 		] }),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ConsentBanner, {})
 	] })]
-}) });
+}) }) });
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-BnyXxJsZ.js.map
+//# sourceMappingURL=index-CSUSx6P6.js.map

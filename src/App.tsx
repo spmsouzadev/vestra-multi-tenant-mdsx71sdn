@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppProvider } from '@/stores/useAppStore'
+import { AuthProvider } from '@/hooks/use-auth'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 import { ConsentBanner } from '@/components/consent/ConsentBanner'
 
@@ -24,45 +25,47 @@ import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 
 const App = () => (
-  <AppProvider>
-    <BrowserRouter
-      future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
-    >
-      <GoogleAnalytics />
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/register" element={<Register />} />
+  <AuthProvider>
+    <AppProvider>
+      <BrowserRouter
+        future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
+      >
+        <GoogleAnalytics />
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes */}
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/leads" element={<Leads />} />
-            <Route path="/tenants" element={<Tenants />} />
-            <Route path="/tenants/:id" element={<TenantDetails />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:projectId" element={<ProjectDetails />} />
-            <Route path="/owners" element={<Owners />} />
-            <Route path="/audit" element={<AuditTrail />} />
-            <Route path="/documents" element={<OwnerDocuments />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route
-              path="/units"
-              element={<Navigate to="/projects" replace />}
-            />
-          </Route>
+            {/* Protected Routes */}
+            <Route element={<Layout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/leads" element={<Leads />} />
+              <Route path="/tenants" element={<Tenants />} />
+              <Route path="/tenants/:id" element={<TenantDetails />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:projectId" element={<ProjectDetails />} />
+              <Route path="/owners" element={<Owners />} />
+              <Route path="/audit" element={<AuditTrail />} />
+              <Route path="/documents" element={<OwnerDocuments />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route
+                path="/units"
+                element={<Navigate to="/projects" replace />}
+              />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <ConsentBanner />
-      </TooltipProvider>
-    </BrowserRouter>
-  </AppProvider>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <ConsentBanner />
+        </TooltipProvider>
+      </BrowserRouter>
+    </AppProvider>
+  </AuthProvider>
 )
 
 export default App

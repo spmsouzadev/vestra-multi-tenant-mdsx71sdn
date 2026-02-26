@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 
-export type ConsentType = 'Termos de Uso' | 'Cookies Analíticos' | 'Marketing'
+export type ConsentType = 'TERMS_OF_USE' | 'ANALYTICS' | 'MARKETING'
 
 export const consentService = {
   async getUserConsents(userId: string) {
@@ -15,14 +15,24 @@ export const consentService = {
 
   async upsertConsent(
     userId: string,
-    consentType: string,
+    consentType: ConsentType,
     isAccepted: boolean,
   ) {
+    let ip_address = null
+    try {
+      const res = await fetch('https://api.ipify.org?format=json')
+      const json = await res.json()
+      ip_address = json.ip
+    } catch (e) {
+      // ignore
+    }
+
     const payload = {
       user_id: userId,
       consent_type: consentType,
       is_accepted: isAccepted,
       user_agent: navigator.userAgent,
+      ip_address,
       updated_at: new Date().toISOString(),
     }
 

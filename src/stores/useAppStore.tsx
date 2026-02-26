@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react'
+import { useAuth } from '@/hooks/use-auth'
 import {
   User,
   Tenant,
@@ -12,7 +19,6 @@ import {
   DocumentLog,
 } from '@/types'
 import {
-  mockUsers,
   mockTenants,
   mockProjects,
   mockUnits,
@@ -82,6 +88,7 @@ const getInitialConsents = (): Consents => {
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const { user: authUser, signIn, signOut } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [tenants, setTenants] = useState<Tenant[]>(mockTenants)
   const [projects, setProjects] = useState<Project[]>(mockProjects)
@@ -103,6 +110,62 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setAuditLogs((prev) => [log, ...prev])
   }
 
+  useEffect(() => {
+    if (authUser) {
+      setUser({
+        id: authUser.id,
+        name:
+          authUser.user_metadata?.name ||
+          authUser.email?.split('@')[0] ||
+          'Usuário',
+        email: authUser.email || '',
+        role: authUser.user_metadata?.role || 'MASTER',
+        tenantId: authUser.user_metadata?.tenantId || 'sys',
+      } as User)
+
+      consentService
+        .getUserConsents(authUser.id)
+        .then((dbConsents) => {
+          if (dbConsents && dbConsents.length > 0) {
+            const merged = { ...consents }
+            dbConsents.forEach((c) => {
+              if (c.consent_type === 'ANALYTICS')
+                merged.analytics = c.is_accepted
+              if (c.consent_type === 'MARKETING')
+                merged.marketing = c.is_accepted
+              if (c.consent_type === 'TERMS_OF_USE')
+                merged.termsOfUse = c.is_accepted
+            })
+            setConsents(merged)
+            setConsentResolved(true)
+            localStorage.setItem('vestra_consents', JSON.stringify(merged))
+            localStorage.setItem('vestra_consent_resolved', 'true')
+          } else if (consentResolved) {
+            Promise.all([
+              consentService.upsertConsent(
+                authUser.id,
+                'TERMS_OF_USE',
+                consents.termsOfUse,
+              ),
+              consentService.upsertConsent(
+                authUser.id,
+                'ANALYTICS',
+                consents.analytics,
+              ),
+              consentService.upsertConsent(
+                authUser.id,
+                'MARKETING',
+                consents.marketing,
+              ),
+            ]).catch((e) => console.error(e))
+          }
+        })
+        .catch(console.error)
+    } else {
+      setUser(null)
+    }
+  }, [authUser])
+
   const updateConsents = async (newConsents: Partial<Consents>) => {
     const updated = { ...consents, ...newConsents, termsOfUse: true } // termsOfUse is always true
     setConsents(updated)
@@ -111,95 +174,54 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('vestra_consents', JSON.stringify(updated))
     localStorage.setItem('vestra_consent_resolved', 'true')
 
-    if (user) {
+    if (authUser) {
       try {
         await Promise.all([
           consentService.upsertConsent(
-            user.id,
-            'Termos de Uso',
+            authUser.id,
+            'TERMS_OF_USE',
             updated.termsOfUse,
           ),
           consentService.upsertConsent(
-            user.id,
-            'Cookies Analíticos',
+            authUser.id,
+            'ANALYTICS',
             updated.analytics,
           ),
-          consentService.upsertConsent(user.id, 'Marketing', updated.marketing),
+          consentService.upsertConsent(
+            authUser.id,
+            'MARKETING',
+            updated.marketing,
+          ),
         ])
         addAuditLog({
           id: Math.random().toString(),
-          userId: user.id,
-          userName: user.name,
+          userId: authUser.id,
+          userName: authUser.email || 'Usuário',
           action: 'CONSENT_UPDATE',
           entityType: 'USER',
-          entityId: user.id,
+          entityId: authUser.id,
           details: `Consents updated: Analytics=${updated.analytics}, Marketing=${updated.marketing}`,
           timestamp: new Date().toISOString(),
         })
       } catch (e) {
-        console.error('Failed to sync consents to DB (Expected in Mock)', e)
+        console.error('Failed to sync consents to DB', e)
       }
     }
   }
 
   const login = async (email: string, password?: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const foundUser = mockUsers.find((u) => u.email === email)
-
-    if (foundUser) {
-      setUser(foundUser)
+    const { error } = await signIn(email, password || 'password123')
+    if (!error) {
       addAuditLog({
         id: Math.random().toString(),
-        userId: foundUser.id,
-        userName: foundUser.name,
+        userId: email,
+        userName: email,
         action: 'LOGIN',
         entityType: 'AUTH',
-        entityId: foundUser.id,
+        entityId: email,
         details: 'User logged in successfully',
         timestamp: new Date().toISOString(),
       })
-
-      // Sync Consents logic on login
-      try {
-        const dbConsents = await consentService.getUserConsents(foundUser.id)
-        if (dbConsents && dbConsents.length > 0) {
-          // Merge DB consents into local state
-          const merged = { ...consents }
-          dbConsents.forEach((c) => {
-            if (c.consent_type === 'Cookies Analíticos')
-              merged.analytics = c.is_accepted
-            if (c.consent_type === 'Marketing') merged.marketing = c.is_accepted
-            if (c.consent_type === 'Termos de Uso')
-              merged.termsOfUse = c.is_accepted
-          })
-          setConsents(merged)
-          setConsentResolved(true)
-          localStorage.setItem('vestra_consents', JSON.stringify(merged))
-          localStorage.setItem('vestra_consent_resolved', 'true')
-        } else if (consentResolved) {
-          // Push local resolved consents to DB if missing
-          await Promise.all([
-            consentService.upsertConsent(
-              foundUser.id,
-              'Termos de Uso',
-              consents.termsOfUse,
-            ),
-            consentService.upsertConsent(
-              foundUser.id,
-              'Cookies Analíticos',
-              consents.analytics,
-            ),
-            consentService.upsertConsent(
-              foundUser.id,
-              'Marketing',
-              consents.marketing,
-            ),
-          ])
-        }
-      } catch (e) {
-        console.error('Error syncing user consents', e)
-      }
-
       return true
     } else {
       addAuditLog({
@@ -209,14 +231,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         action: 'LOGIN_FAILED',
         entityType: 'AUTH',
         entityId: email,
-        details: `Failed login attempt for ${email}`,
+        details: `Failed login attempt for ${email}: ${error.message}`,
         timestamp: new Date().toISOString(),
       })
       return false
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
     if (user) {
       addAuditLog({
         id: Math.random().toString(),
@@ -229,7 +251,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         timestamp: new Date().toISOString(),
       })
     }
-    setUser(null)
+    await signOut()
   }
 
   const addTenant = (tenant: Tenant) => {

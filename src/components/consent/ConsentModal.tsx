@@ -44,7 +44,7 @@ export function ConsentModal({ open, onOpenChange }: ConsentModalProps) {
         <div className="space-y-6 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <Label className="text-base">Termos de Uso</Label>
+              <Label className="text-base">Termos de Uso & Essencial</Label>
               <p className="text-sm text-muted-foreground">
                 Necessários para o funcionamento básico da plataforma,
                 segurança, e cumprimento das obrigações legais (LGPD). Não podem

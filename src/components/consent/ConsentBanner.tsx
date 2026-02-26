@@ -3,12 +3,17 @@ import useAppStore from '@/stores/useAppStore'
 import { Button } from '@/components/ui/button'
 import { ConsentModal } from './ConsentModal'
 import { ShieldAlert } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 
 export function ConsentBanner() {
   const { consentResolved, updateConsents } = useAppStore()
   const [showModal, setShowModal] = useState(false)
+  const location = useLocation()
 
-  if (consentResolved) return null
+  const isTargetPage =
+    location.pathname === '/' || location.pathname === '/login'
+
+  if (consentResolved || !isTargetPage) return null
 
   return (
     <>
@@ -22,8 +27,12 @@ export function ConsentBanner() {
               A <strong>VESTRA</strong> utiliza cookies e tecnologias
               semelhantes para garantir a segurança, melhorar a sua experiência,
               analisar o tráfego do site e personalizar conteúdo. Ao clicar em
-              "Aceitar", você concorda com o uso de todos os cookies, em
-              conformidade com a LGPD.
+              "Aceitar Todos", você concorda com o uso de todos os cookies, em
+              conformidade com a LGPD e nossa{' '}
+              <a href="#" className="underline font-medium hover:text-primary">
+                Política de Privacidade
+              </a>
+              .
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 shrink-0 w-full md:w-auto">
@@ -33,7 +42,7 @@ export function ConsentBanner() {
               className="flex-1 md:flex-none"
               onClick={() => setShowModal(true)}
             >
-              Configurações
+              Personalizar
             </Button>
             <Button
               variant="secondary"
@@ -43,7 +52,7 @@ export function ConsentBanner() {
                 updateConsents({ analytics: false, marketing: false })
               }
             >
-              Recusar
+              Rejeitar
             </Button>
             <Button
               size="sm"
@@ -52,7 +61,7 @@ export function ConsentBanner() {
                 updateConsents({ analytics: true, marketing: true })
               }
             >
-              Aceitar
+              Aceitar Todos
             </Button>
           </div>
         </div>

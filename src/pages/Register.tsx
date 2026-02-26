@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
 import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -49,6 +50,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export default function Register() {
   const { toast } = useToast()
+  const { signUp } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
@@ -64,15 +66,28 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    setIsSuccess(true)
 
-    toast({
-      title: 'Conta criada com sucesso!',
-      description: 'Agora você pode fazer login com suas credenciais.',
+    const { error } = await signUp(data.email, data.password, {
+      name: data.name,
+      role: data.role,
+      tenantId: 'sys',
     })
+
+    setIsLoading(false)
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao criar conta',
+        description: error.message,
+      })
+    } else {
+      setIsSuccess(true)
+      toast({
+        title: 'Conta criada com sucesso!',
+        description: 'Verifique seu email ou faça login com suas credenciais.',
+      })
+    }
   }
 
   return (

@@ -60,7 +60,7 @@ export default function Settings() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 bg-slate-200 rounded-full flex items-center justify-center text-2xl font-bold text-slate-500">
-                  {user.name.charAt(0)}
+                  {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <p className="font-medium text-lg">{user.name}</p>
@@ -86,7 +86,7 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="flex items-start justify-between gap-4 py-2 border-b">
                 <div className="space-y-1">
-                  <Label className="text-base">Termos de Uso</Label>
+                  <Label className="text-base">Termos de Uso & Essencial</Label>
                   <p className="text-sm text-muted-foreground">
                     Necessários para o funcionamento básico da plataforma,
                     autenticação, segurança e cumprimento das obrigações legais.
