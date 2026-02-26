@@ -47,7 +47,6 @@ DECLARE
 BEGIN
   -- 1. Data Cleanup (Reverse order of dependencies)
   DELETE FROM public.document_versions;
-  DELETE FROM public.document_logs;
   DELETE FROM public.documents;
   DELETE FROM public.unit_warranties;
   DELETE FROM public.warranty_categories;
