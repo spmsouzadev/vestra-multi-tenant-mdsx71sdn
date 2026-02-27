@@ -196,12 +196,18 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {myProjects.map((project) => (
             <Card key={project.id} className="overflow-hidden group">
-              <div className="relative h-48">
-                <img
-                  src={project.imageUrl}
-                  alt={project.name}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
-                />
+              <div className="relative h-48 bg-slate-100">
+                {project.imageUrl ? (
+                  <img
+                    src={project.imageUrl}
+                    alt={project.name}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center transition-transform group-hover:scale-105 duration-500">
+                    <Building2 className="h-12 w-12 text-slate-300" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <div className="text-white text-center">
                     <div className="text-3xl font-bold">
@@ -252,11 +258,16 @@ export default function Dashboard() {
               return (
                 <Card key={unit.id} className="overflow-hidden">
                   <div className="h-40 bg-slate-100 relative">
-                    {project?.imageUrl && (
+                    {project?.imageUrl ? (
                       <img
                         src={project.imageUrl}
+                        alt={project.name}
                         className="w-full h-full object-cover"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Building2 className="h-10 w-10 text-slate-300" />
+                      </div>
                     )}
                     <Badge className="absolute top-4 right-4 bg-green-600">
                       Em dia

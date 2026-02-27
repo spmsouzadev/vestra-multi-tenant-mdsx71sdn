@@ -38274,10 +38274,10 @@ function Header$1() {
 						className: "relative h-9 w-9 rounded-full",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Avatar, {
 							className: "h-9 w-9",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
+							children: [user.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
 								src: user.avatarUrl,
 								alt: user.name
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, { children: user.name.charAt(0) })]
+							}) : null, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, { children: user.name.charAt(0) })]
 						})
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuContent, {
@@ -67807,11 +67807,14 @@ function Dashboard() {
 						className: "overflow-hidden group",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "relative h-48",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+								className: "relative h-48 bg-slate-100",
+								children: [project.imageUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
 									src: project.imageUrl,
 									alt: project.name,
 									className: "w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "w-full h-full flex items-center justify-center transition-transform group-hover:scale-105 duration-500",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: "h-12 w-12 text-slate-300" })
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: "absolute inset-0 bg-black/40 flex items-center justify-center",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -67870,9 +67873,13 @@ function Dashboard() {
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 									className: "h-40 bg-slate-100 relative",
-									children: [project?.imageUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									children: [project?.imageUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
 										src: project.imageUrl,
+										alt: project.name,
 										className: "w-full h-full object-cover"
+									}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "w-full h-full flex items-center justify-center",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: "h-10 w-10 text-slate-300" })
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
 										className: "absolute top-4 right-4 bg-green-600",
 										children: "Em dia"
@@ -75425,4 +75432,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, { chil
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CyknRzoY.js.map
+//# sourceMappingURL=index-DWyP-3lv.js.map
