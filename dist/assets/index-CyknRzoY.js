@@ -73996,6 +73996,7 @@ function ProjectDetails() {
 		className: "p-8 text-center",
 		children: "Projeto não encontrado"
 	});
+	const hasValidImage = project.imageUrl && project.imageUrl.trim() !== "";
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-6",
 		children: [
@@ -74014,42 +74015,49 @@ function ProjectDetails() {
 					className: "flex-1",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "flex flex-col md:flex-row md:items-center justify-between gap-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-							className: "text-3xl font-bold text-slate-900",
-							children: project.name
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2",
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "flex items-center gap-1",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MapPin, { className: "h-4 w-4" }),
-										" ",
-										project.city,
-										" -",
-										" ",
-										project.state
-									]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "flex items-center gap-1",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, { className: "h-4 w-4" }),
-										" ",
-										project.manager
-									]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "flex items-center gap-1",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-4 w-4" }),
-										" Entrega Prevista:",
-										" ",
-										format(new Date(project.deliveryDate), "dd/MM/yyyy")
-									]
-								})
-							]
-						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-4",
+							children: [hasValidImage && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+								src: project.imageUrl,
+								alt: project.name,
+								className: "w-16 h-16 rounded-md object-cover border border-slate-200"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+								className: "text-3xl font-bold text-slate-900",
+								children: project.name
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "flex items-center gap-1",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MapPin, { className: "h-4 w-4" }),
+											" ",
+											project.city,
+											" -",
+											" ",
+											project.state
+										]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "flex items-center gap-1",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, { className: "h-4 w-4" }),
+											" ",
+											project.manager
+										]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "flex items-center gap-1",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-4 w-4" }),
+											" Entrega Prevista:",
+											" ",
+											format(new Date(project.deliveryDate), "dd/MM/yyyy")
+										]
+									})
+								]
+							})] })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "flex gap-2",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 								variant: "outline",
@@ -75417,4 +75425,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, { chil
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-ChzPOs0B.js.map
+//# sourceMappingURL=index-CyknRzoY.js.map

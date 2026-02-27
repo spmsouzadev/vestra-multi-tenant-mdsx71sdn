@@ -32,6 +32,8 @@ export default function ProjectDetails() {
   if (!project)
     return <div className="p-8 text-center">Projeto não encontrado</div>
 
+  const hasValidImage = project.imageUrl && project.imageUrl.trim() !== ''
+
   return (
     <div className="space-y-6">
       {/* Header with Navigation */}
@@ -43,22 +45,31 @@ export default function ProjectDetails() {
         </Button>
         <div className="flex-1">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                {project.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" /> {project.city} -{' '}
-                  {project.state}
-                </span>
-                <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" /> {project.manager}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" /> Entrega Prevista:{' '}
-                  {format(new Date(project.deliveryDate), 'dd/MM/yyyy')}
-                </span>
+            <div className="flex items-center gap-4">
+              {hasValidImage && (
+                <img
+                  src={project.imageUrl}
+                  alt={project.name}
+                  className="w-16 h-16 rounded-md object-cover border border-slate-200"
+                />
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  {project.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" /> {project.city} -{' '}
+                    {project.state}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <User className="h-4 w-4" /> {project.manager}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" /> Entrega Prevista:{' '}
+                    {format(new Date(project.deliveryDate), 'dd/MM/yyyy')}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
